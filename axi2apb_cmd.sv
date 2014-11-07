@@ -12,14 +12,14 @@ module  axi2apb_cmd
 
    input   logic   [AXI_ID_WIDTH-1:0] AWID,
    input   logic [AXI_ADDR_WIDTH-1:0] AWADDR,
-   input   logic                [3:0] AWLEN,
-   input   logic                [1:0] AWSIZE,
+   input   logic                [7:0] AWLEN,
+   input   logic                [2:0] AWSIZE,
    input   logic                      AWVALID,
    output  logic                      AWREADY,
    input   logic   [AXI_ID_WIDTH-1:0] ARID,
    input   logic [AXI_ADDR_WIDTH-1:0] ARADDR,
-   input   logic                [3:0] ARLEN,
-   input   logic                [1:0] ARSIZE,
+   input   logic                [7:0] ARLEN,
+   input   logic                [2:0] ARSIZE,
    input   logic                      ARVALID,
    output  logic                      ARREADY,
    input   logic                      finish_wr,
@@ -34,8 +34,8 @@ module  axi2apb_cmd
    
    logic   [AXI_ID_WIDTH-1:0] AID;
    logic [3+APB_ADDR_WIDTH:0] AADDR;
-   logic                [3:0] ALEN;
-   logic                [1:0] ASIZE;
+   logic                [7:0] ALEN;
+   logic                [2:0] ASIZE;
    logic                      AVALID;
    logic                      AREADY;
    
@@ -79,7 +79,7 @@ module  axi2apb_cmd
    prgen_fifo #(AXI_ID_WIDTH+4+APB_ADDR_WIDTH+2, 2) 
    	cmd_fifo(
    		.clk(clk),
-   		.reset(reset),
+   		.rstn(rstn),
    		.push(cmd_push),
    		.pop(cmd_pop),
    		.din({AID,AADDR,AERR,read}),

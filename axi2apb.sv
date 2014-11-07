@@ -13,8 +13,8 @@ module axi2apb
                           
       	input  logic          [AXI_ID_WIDTH-1:0]    AWID,
       	input  logic        [AXI_ADDR_WIDTH-1:0]    AWADDR,
-      	input  logic                       [3:0]    AWLEN,
-      	input  logic                       [1:0]    AWSIZE,
+      	input  logic                       [7:0]    AWLEN,
+      	input  logic                       [2:0]    AWSIZE,
       	input  logic                                AWVALID,
       	output logic                                AWREADY,
       	input  logic        [AXI_DATA_WIDTH-1:0]    WDATA,
@@ -28,8 +28,8 @@ module axi2apb
       	input  logic                                BREADY,
       	input  logic          [AXI_ID_WIDTH-1:0]    ARID,
       	input  logic        [AXI_ADDR_WIDTH-1:0]    ARADDR,
-      	input  logic                       [3:0]    ARLEN,
-      	input  logic                       [1:0]    ARSIZE,
+      	input  logic                       [7:0]    ARLEN,
+      	input  logic                       [2:0]    ARSIZE,
       	input  logic                                ARVALID,
       	output logic                                ARREADY,
       	output logic          [AXI_ID_WIDTH-1:0]    RID,
@@ -136,7 +136,7 @@ module axi2apb
 			.AXI_ID_WIDTH(AXI_ID_WIDTH)
 			) axi2apb_wr (
 			.clk(clk),
-			.reset(rstn),
+			.rstn(rstn),
 			.psel(int_psel),
 			.penable(int_penable),
 			.pwrite(int_pwrite),
@@ -172,7 +172,7 @@ module axi2apb
 			) axi2apb_mux (
 			.clk(clk),
 			.rstn(rstn),
-			.cmd_addr_mux(cmd_addr_mux),
+			.ctrl_addr_mux(cmd_addr_mux),
 			.ctrl_psel(int_psel),
 			.ctrl_prdata(int_prdata),
 			.ctrl_pready(int_pready),
