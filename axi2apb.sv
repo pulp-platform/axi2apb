@@ -48,7 +48,7 @@ module axi2apb
       	input  logic        [APB_NUM_SLAVES-1:0]    pslverr
       	);
 
-    localparam EXTRA_LANES=log2(AXI_ADDR_WIDTH/32);
+    localparam EXTRA_LANES=`log2(AXI_ADDR_WIDTH/32);
 
  	logic        int_psel;
 	logic        int_penable;
@@ -67,13 +67,20 @@ module axi2apb
 	logic                   finish_wr;
 	logic                   finish_rd;
 
-    logic    [EXTRALANES:0] bytelane;
+    logic    [EXTRA_LANES:0] bytelane;
    
 	assign cmd_addr_mux = cmd_addr[3+APB_ADDR_WIDTH:APB_ADDR_WIDTH];
 	assign paddr        = cmd_addr[APB_ADDR_WIDTH-1:0];
-    assign bytelane     = (EXTRALANES==0) ? 'h0 : cmd_addr[2+EXTRALANES:2];
-	assign pwdata       = WDATA[31+32*bytelane:32*bytelane];
+    assign bytelane     = (EXTRA_LANES==0) ? 'h0 : cmd_addr[2+EXTRA_LANES:2];
 
+    always_comb
+    begin
+        for (int i=0; i<EXTRA_LANES; i=i+1)
+        begin
+            if (i == bytelane)
+               pwdata = WDATA[32*i +: 32];
+        end
+    end
    
 	axi2apb_cmd #(
 			.AXI_ID_WIDTH(AXI_ID_WIDTH),
