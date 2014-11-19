@@ -35,7 +35,7 @@ module  axi2apb_rd
    assign                 finish_rd = RVALID & RREADY & RLAST;
    
    always @(posedge clk or negedge rstn)
-     if (rstn)
+     if (~rstn)
        begin
          //RRESP  <=  2'h0;
          //RLAST  <=  1'b0;
