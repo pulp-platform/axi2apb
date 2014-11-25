@@ -48,7 +48,7 @@ module axi2apb
       	input  logic        [APB_NUM_SLAVES-1:0]    pslverr
       	);
 
-    localparam EXTRA_LANES=`log2(AXI_ADDR_WIDTH/32);
+    localparam EXTRA_LANES=`log2(AXI_DATA_WIDTH/32);
 
  	logic        int_psel;
 	logic        int_penable;
