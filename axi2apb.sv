@@ -71,7 +71,7 @@ module axi2apb
    
 	assign cmd_addr_mux = cmd_addr[3+APB_ADDR_WIDTH:APB_ADDR_WIDTH];
 	assign paddr        = cmd_addr[APB_ADDR_WIDTH-1:0];
-    assign bytelane     = (EXTRA_LANES==0) ? 'h0 : cmd_addr[2+EXTRA_LANES:2];
+    assign bytelane     = (EXTRA_LANES==0) ? 'h0 : cmd_addr[2+EXTRA_LANES-1:2];
     
     assign penable = int_penable;
     assign pwrite  = int_pwrite;
@@ -127,6 +127,7 @@ module axi2apb
 			.pready(int_pready),
 			.cmd_err(cmd_err),
 			.cmd_id(cmd_id),
+			.cmd_addr(cmd_addr),
 			.finish_rd(finish_rd),
 			.RID(RID),
 			.RDATA(RDATA),
