@@ -174,8 +174,6 @@ module axi2apb
 	axi2apb_mux  #(
 			.NUM_SLAVES(APB_NUM_SLAVES)
 			) axi2apb_mux (
-			.clk(clk),
-			.rstn(rstn),
 			.ctrl_addr_mux(cmd_addr_mux),
 			.ctrl_psel(int_psel),
 			.ctrl_prdata(int_prdata),
