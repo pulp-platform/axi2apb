@@ -16,6 +16,8 @@ module  axi2apb_mux
 			input  logic [NUM_SLAVES-1:0] [31:0]  slv_prdata
 		);
 	
+	logic dec_err; //IGOR FIX, not declared
+	
 	assign dec_err = (ctrl_addr_mux >= NUM_SLAVES);
 	
 	always_comb

@@ -2,12 +2,13 @@
 
 
 module  axi2apb_rd
-		#(
-		parameter AXI_ID_WIDTH   = 6,
-		parameter AXI_DATA_WIDTH = 64,
-        parameter APB_ADDR_WIDTH = 12  //APB slaves are 4KB by default
-		) (
-
+#(
+    parameter AXI_ID_WIDTH   = 6,
+    parameter AXI_DATA_WIDTH = 64,
+    parameter APB_ADDR_WIDTH = 12  //APB slaves are 4KB by default
+    
+) 
+(
    input  logic                        clk,
    input  logic                        rstn,
 
@@ -30,8 +31,9 @@ module  axi2apb_rd
    output logic                        RLAST,
    output logic                        RVALID,
    input  logic                        RREADY
-);   
-   localparam             EXTRA_LANES = `log2(AXI_DATA_WIDTH/32);
+); 
+
+   localparam EXTRA_LANES = `log2(AXI_DATA_WIDTH/32);
    
    parameter              RESP_OK     = 2'b00;
    parameter              RESP_SLVERR = 2'b10;
