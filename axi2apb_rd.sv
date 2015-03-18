@@ -6,79 +6,73 @@ module  axi2apb_rd
     parameter AXI_ID_WIDTH   = 6,
     parameter AXI_DATA_WIDTH = 64,
     parameter APB_ADDR_WIDTH = 12  //APB slaves are 4KB by default
-    
-) 
+)
 (
-   input  logic                        clk,
-   input  logic                        rstn,
+    input  logic                        clk,
+    input  logic                        rstn,
 
-   input  logic                        psel,
-   input  logic                        penable,
-   input  logic                        pwrite,
+    input  logic                        psel,
+    input  logic                        penable,
+    input  logic                        pwrite,
 
-   input  logic               [31:0]   prdata,
-   input  logic                        pslverr,
-   input  logic                        pready,
-      
-   input  logic                        cmd_err,
-   input  logic   [AXI_ID_WIDTH-1:0]   cmd_id,
-   input  logic [3+APB_ADDR_WIDTH:0]   cmd_addr,
-   output logic                        finish_rd,
-   
-   output logic   [AXI_ID_WIDTH-1:0]   RID,
-   output logic [AXI_DATA_WIDTH-1:0]   RDATA,
-   output logic                [1:0]   RRESP,
-   output logic                        RLAST,
-   output logic                        RVALID,
-   input  logic                        RREADY
-); 
+    input  logic               [31:0]   prdata,
+    input  logic                        pslverr,
+    input  logic                        pready,
 
-   localparam EXTRA_LANES = `log2(AXI_DATA_WIDTH/32);
-   
-   parameter              RESP_OK     = 2'b00;
-   parameter              RESP_SLVERR = 2'b10;
-   parameter              RESP_DECERR = 2'b11;
+    input  logic                        cmd_err,
+    input  logic   [AXI_ID_WIDTH-1:0]   cmd_id,
+    input  logic [3+APB_ADDR_WIDTH:0]   cmd_addr,
+    output logic                        finish_rd,
+
+    output logic   [AXI_ID_WIDTH-1:0]   RID,
+    output logic [AXI_DATA_WIDTH-1:0]   RDATA,
+    output logic                [1:0]   RRESP,
+    output logic                        RLAST,
+    output logic                        RVALID,
+    input  logic                        RREADY
+);
+
+    localparam           EXTRA_LANES = `log2(AXI_DATA_WIDTH/32);
+    localparam           RESP_OK     = 2'b00;
+    localparam           RESP_SLVERR = 2'b10;
+    localparam           RESP_DECERR = 2'b11;
 
     logic    [EXTRA_LANES:0] bytelane;
     logic             [31:0] r_RDATA;
-   
+
     assign bytelane     = (EXTRA_LANES==0) ? 'h0 : cmd_addr[2+EXTRA_LANES-1:2];
-    
+
     always_comb
     begin
         for (int i=0; i <= EXTRA_LANES; i=i+1)
         begin
             if (i == bytelane)
-               RDATA[32*i +: 32] = r_RDATA;
+              RDATA[32*i +: 32] = r_RDATA;
         end
     end
-   
-   assign                 finish_rd = RVALID & RREADY & RLAST;
-   
-   always @(posedge clk or negedge rstn)
+
+    assign                 finish_rd = RVALID & RREADY & RLAST;
+
+    always @(posedge clk or negedge rstn)
      if (~rstn)
        begin
-         //RRESP  <=  2'h0;
-         //RLAST  <=  1'b0;
-         RVALID <=  1'b0;
+          //RRESP  <=  2'h0;
+          //RLAST  <=  1'b0;
+          RVALID <=  1'b0;
        end
      else if (finish_rd)
        begin
-       	//RRESP  <=  2'h0;
-       	//RLAST  <=  1'b0;
-       	RVALID <=  1'b0;
+          //RRESP  <=  2'h0;
+          //RLAST  <=  1'b0;
+          RVALID <=  1'b0;
        end
      else if (psel & penable & (~pwrite) & pready)
        begin
-         RID      <=  cmd_id;
-         r_RDATA  <=  prdata;
-         RRESP    <=  cmd_err ? RESP_SLVERR : pslverr ? RESP_DECERR : RESP_OK;
-         RLAST    <=  1'b1;
-         RVALID   <=  1'b1;
+          RID      <=  cmd_id;
+          r_RDATA  <=  prdata;
+          RRESP    <=  cmd_err ? RESP_SLVERR : pslverr ? RESP_DECERR : RESP_OK;
+          RLAST    <=  1'b1;
+          RVALID   <=  1'b1;
        end
-       
+
 endmodule
-
-   
-
-
