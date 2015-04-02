@@ -44,6 +44,7 @@ module  axi2apb_rd
 
     always_comb
     begin
+        RDATA = 'h0;
         for (int i=0; i <= EXTRA_LANES; i=i+1)
         begin
             if (i == bytelane)
@@ -53,26 +54,33 @@ module  axi2apb_rd
 
     assign                 finish_rd = RVALID & RREADY & RLAST;
 
-    always @(posedge clk or negedge rstn)
-     if (~rstn)
-       begin
-          //RRESP  <=  2'h0;
-          //RLAST  <=  1'b0;
-          RVALID <=  1'b0;
-       end
-     else if (finish_rd)
-       begin
-          //RRESP  <=  2'h0;
-          //RLAST  <=  1'b0;
-          RVALID <=  1'b0;
-       end
-     else if (psel & penable & (~pwrite) & pready)
-       begin
-          RID      <=  cmd_id;
-          r_RDATA  <=  prdata;
-          RRESP    <=  cmd_err ? RESP_SLVERR : pslverr ? RESP_DECERR : RESP_OK;
-          RLAST    <=  1'b1;
-          RVALID   <=  1'b1;
-       end
+    always_ff @(posedge clk or negedge rstn)
+    begin
+        if (~rstn)
+        begin
+            r_RDATA <=  'h0;
+            RID    <=   'h0;
+            RRESP  <=   'h0;
+            RLAST  <=   'h0;
+            RVALID <=  1'b0;
+        end
+        else 
+        begin
+            if (finish_rd)
+            begin
+                //RRESP  <=  2'h0;
+                //RLAST  <=  1'b0;
+                RVALID <=  1'b0;
+            end
+            else if (psel & penable & (~pwrite) & pready)
+            begin
+                RID      <=  cmd_id;
+                r_RDATA  <=  prdata;
+                RRESP    <=  cmd_err ? RESP_SLVERR : pslverr ? RESP_DECERR : RESP_OK;
+                RLAST    <=  1'b1;
+                RVALID   <=  1'b1;
+            end
+        end
+    end
 
 endmodule
