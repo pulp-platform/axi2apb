@@ -542,6 +542,12 @@ module AXI_2_APB
                       if(WVALID)
                       begin : _VALID_W_REQ_
                           write_req       = 1'b1;
+                          
+                          if(AWADDR[2:0] == 4)
+                              W_word_sel = 1'b1;
+                          else
+                              W_word_sel = 1'b0;
+
                           // There is a Pending WRITE!!
                           if(PREADY[TARGET_SLAVE] == 1'b1) // APB is READY --> WDATA is LAtched
                           begin : _APB_SLAVE_READY_
@@ -552,10 +558,6 @@ module AXI_2_APB
                                     default:   begin NS = SINGLE_WR;      end
                                     endcase
 
-                                    if(AWADDR[2:0] == 4)
-                                        W_word_sel = 1'b1;
-                                    else
-                                        W_word_sel = 1'b0;
                               end
                               else // BURST WRITE
                               begin : _B_WRITE_
