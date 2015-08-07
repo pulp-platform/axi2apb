@@ -40,7 +40,11 @@ module  axi2apb_rd
     logic    [EXTRA_LANES:0] bytelane;
     logic             [31:0] r_RDATA;
 
-    assign bytelane     = (EXTRA_LANES==0) ? 'h0 : cmd_addr[2+EXTRA_LANES-1:2];
+    generate if (EXTRA_LANES == 0)
+      assign bytelane = 'h0;
+    else
+      assign bytelane =    cmd_addr[2+EXTRA_LANES-1:2];
+    endgenerate
 
     always_comb
     begin
