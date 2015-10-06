@@ -64,6 +64,7 @@ module AXI_2_APB
 (
     input logic                                     ACLK,
     input logic                                     ARESETn,
+    input logic                                     test_en_i,
     // ---------------------------------------------------------
     // AXI TARG Port Declarations ------------------------------
     // ---------------------------------------------------------
@@ -269,6 +270,7 @@ module AXI_2_APB
    (
       .clk_i           ( ACLK        ),
       .rst_ni          ( ARESETn     ),
+      .test_en_i       ( test_en_i   ),
 
       .slave_valid_i   ( AWVALID_i   ),
       .slave_addr_i    ( AWADDR_i    ),
@@ -312,6 +314,7 @@ module AXI_2_APB
    (
       .clk_i           ( ACLK       ),
       .rst_ni          ( ARESETn    ),
+      .test_en_i       ( test_en_i  ),
 
       .slave_valid_i   ( ARVALID_i  ),
       .slave_addr_i    ( ARADDR_i   ),
@@ -351,22 +354,23 @@ module AXI_2_APB
    )
    Slave_w_buffer
    (
-        .clk_i          ( ACLK     ),
-        .rst_ni         ( ARESETn  ),
+        .clk_i          ( ACLK      ),
+        .rst_ni         ( ARESETn   ),
+        .test_en_i      ( test_en_i ),
 
-        .slave_valid_i  ( WVALID_i ),
-        .slave_data_i   ( WDATA_i  ),
-        .slave_strb_i   ( WSTRB_i  ),
-        .slave_user_i   ( WUSER_i  ),
-        .slave_last_i   ( WLAST_i  ),
-        .slave_ready_o  ( WREADY_o ),
+        .slave_valid_i  ( WVALID_i  ),
+        .slave_data_i   ( WDATA_i   ),
+        .slave_strb_i   ( WSTRB_i   ),
+        .slave_user_i   ( WUSER_i   ),
+        .slave_last_i   ( WLAST_i   ),
+        .slave_ready_o  ( WREADY_o  ),
 
-        .master_valid_o ( WVALID   ),
-        .master_data_o  ( WDATA    ),
-        .master_strb_o  ( WSTRB    ),
-        .master_user_o  ( WUSER    ),
-        .master_last_o  ( WLAST    ),
-        .master_ready_i ( WREADY   )
+        .master_valid_o ( WVALID    ),
+        .master_data_o  ( WDATA     ),
+        .master_strb_o  ( WSTRB     ),
+        .master_user_o  ( WUSER     ),
+        .master_last_o  ( WLAST     ),
+        .master_ready_i ( WREADY    )
     );
 
    axi_r_buffer
@@ -380,6 +384,7 @@ module AXI_2_APB
    (
         .clk_i          ( ACLK       ),
         .rst_ni         ( ARESETn    ),
+        .test_en_i      ( test_en_i  ),
 
         .slave_valid_i  ( RVALID     ),
         .slave_data_i   ( RDATA      ),
@@ -411,6 +416,7 @@ module AXI_2_APB
    (
         .clk_i          ( ACLK      ),
         .rst_ni         ( ARESETn   ),
+        .test_en_i      ( test_en_i ),
 
         .slave_valid_i  ( BVALID    ),
         .slave_resp_i   ( BRESP     ),
