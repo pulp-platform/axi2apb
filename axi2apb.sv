@@ -1,4 +1,3 @@
-`define log2(VALUE) ((VALUE) <= ( 1 ) ? 0 : (VALUE) <= ( 2 ) ? 1 : (VALUE) <= ( 4 ) ? 2 : (VALUE)<= (8) ? 3:(VALUE) <= ( 16 )  ? 4 : (VALUE) <= ( 32 )  ? 5 : (VALUE) <= ( 64 )  ? 6 : (VALUE) <= ( 128 ) ? 7 : (VALUE) <= ( 256 ) ? 8 : (VALUE) <= ( 512 ) ? 9 : 10)
 
 module axi2apb
 #(
@@ -54,49 +53,44 @@ module axi2apb
     input  logic        [APB_NUM_SLAVES-1:0]    pslverr
 );
 
-    localparam EXTRA_LANES=`log2(AXI_DATA_WIDTH/32);
+    logic                        int_psel;
+    logic                        int_penable;
+    logic                        int_pwrite;
+    logic                [31:0]  int_prdata;
+    logic                        int_pready;
+    logic                        int_pslverr;
 
-    logic                       int_psel;
-    logic                       int_penable;
-    logic                       int_pwrite;
-    logic               [31:0]  int_prdata;
-    logic                       int_pready;
-    logic                       int_pslverr;
+    logic                        cmd_empty;
+    logic                        cmd_read;
+    logic    [AXI_ID_WIDTH-1:0]  cmd_id;
+    logic  [3+APB_ADDR_WIDTH:0]  cmd_addr;
+    logic                 [3:0]  cmd_addr_mux;
+    logic                        cmd_err;
 
-    logic                       cmd_empty;
-    logic                       cmd_read;
-    logic   [AXI_ID_WIDTH-1:0]  cmd_id;
-    logic [3+APB_ADDR_WIDTH:0]  cmd_addr;
-    logic                [3:0]  cmd_addr_mux;
-    logic                       cmd_err;
+    logic                        finish_wr;
+    logic                        finish_rd;
 
-    logic                       finish_wr;
-    logic                       finish_rd;
+    logic [AXI_DATA_WIDTH/32-1:0][31:0] wdata_words;
 
-    logic    [EXTRA_LANES:0]    bytelane;
+    assign cmd_addr_mux = cmd_addr[3+APB_ADDR_WIDTH:APB_ADDR_WIDTH];
+    assign paddr        = cmd_addr[APB_ADDR_WIDTH-1:0];
 
-    assign cmd_addr_mux =       cmd_addr[3+APB_ADDR_WIDTH:APB_ADDR_WIDTH];
-    assign paddr        =       cmd_addr[APB_ADDR_WIDTH-1:0];
-
-    generate if (EXTRA_LANES == 0)
-      assign bytelane = 'h0;
-    else
-      assign bytelane =    cmd_addr[2+EXTRA_LANES-1:2];
+    genvar i;
+    generate
+      for (i = 0; i < AXI_DATA_WIDTH/32; i++)
+        assign wdata_words[i] = WDATA[32*i+31:32*i];
     endgenerate
 
-    assign penable      =       int_penable;
-    assign pwrite       =       int_pwrite;
+    generate if (AXI_DATA_WIDTH/32 == 1)
+      assign pwdata = wdata_words[0];
+    else
+      assign pwdata = wdata_words[cmd_addr[2+(AXI_DATA_WIDTH/32)-1:2]];
+    endgenerate
 
-    always_comb
-    begin
-        for (int i=0; i <= EXTRA_LANES; i=i+1)
-        begin
-            if (i == bytelane)
-                pwdata = WDATA[32*i +: 32];
-        end
-    end
+    assign penable = int_penable;
+    assign pwrite  = int_pwrite;
 
-    axi2apb_cmd 
+    axi2apb_cmd
     #(
         .AXI_ID_WIDTH(AXI_ID_WIDTH),
         .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
