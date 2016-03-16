@@ -6,5 +6,6 @@ axi2apb:
     axi2apb_rd.sv,
     axi2apb.sv,
     AXI_2_APB.sv,
+    AXI_2_APB_32.sv,
     axi2apb_wr.sv,
   ]
