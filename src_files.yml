@@ -1,11 +1,5 @@
 axi2apb:
   files: [
-    axi2apb_cmd.sv,
-    axi2apb_ctrl.sv,
-    axi2apb_mux.sv,
-    axi2apb_rd.sv,
-    axi2apb.sv,
     AXI_2_APB.sv,
     AXI_2_APB_32.sv,
-    axi2apb_wr.sv,
   ]
