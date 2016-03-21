@@ -414,10 +414,11 @@ module AXI_2_APB_32
       write_req  = 1'b0;
       address    = 'x;
 
+      sample_RDATA = 1'b0;
+
       ARREADY    = 1'b0;
       AWREADY    = 1'b0;
       WREADY     = 1'b0;
-      
 
       //-----------------//
       BVALID     = 1'b0;
@@ -434,7 +435,7 @@ module AXI_2_APB_32
 
       case(CS)
 
-         WAIT_R_PREADY: 
+         WAIT_R_PREADY:
          begin
             read_req       = 1'b1;
             address        = ARADDR[$clog2(APB_NUM_SLAVES) + APB_ADDR_WIDTH  - 1 : 0];
@@ -450,7 +451,7 @@ module AXI_2_APB_32
             end
          end //~WAIT_R_PREADY
 
-         WAIT_W_PREADY: 
+         WAIT_W_PREADY:
          begin
             write_req   = 1'b1;
             address     = AWADDR[$clog2(APB_NUM_SLAVES) + APB_ADDR_WIDTH - 1:0];
@@ -558,8 +559,6 @@ module AXI_2_APB_32
         begin
             NS      = IDLE;
         end //~default
-
-
 
       endcase
     end
