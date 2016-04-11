@@ -3,4 +3,5 @@ axi2apb:
     AXI_2_APB.sv,
     AXI_2_APB_32.sv,
     axi2apb.sv,
+    axi2apb32.sv,
   ]
