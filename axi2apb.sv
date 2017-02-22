@@ -215,10 +215,10 @@ module axi2apb
   logic        decr_AWLEN;
   
   logic [AXI4_ADDRESS_WIDTH-1:0] ARADDR_Q;
-  logic 			 incr_ARADDR;
+  logic                          incr_ARADDR;
    
   logic [AXI4_ADDRESS_WIDTH-1:0] AWADDR_Q;
-  logic 			 incr_AWADDR;
+  logic                          incr_AWADDR;
   
   logic        sample_RDATA_0; // Sample the First  32 bit CHunk to be aggregated in 64bit rdata
   logic        sample_RDATA_1; // Sample the Second 32 bit CHunk to be aggregated in 64bit rdata
@@ -413,13 +413,13 @@ module axi2apb
           //Read Channel
           ARLEN_Q      <= '0;
           AWADDR_Q     <= '0;
-	 
+         
           //Write Channel
           AWLEN_Q      <= '0;
           RDATA_Q_0    <= '0;
           RDATA_Q_1    <= '0;
-	  ARADDR_Q     <= '0;
-	 
+          ARADDR_Q     <= '0;
+         
       end
       else
       begin
@@ -434,12 +434,12 @@ module axi2apb
               if(decr_ARLEN)
                 ARLEN_Q  <=  ARLEN_Q - 1;
           end
-	 
+         
           if(sample_RDATA_0)
             RDATA_Q_0 <= PRDATA;
           if(sample_RDATA_1)
             RDATA_Q_1 <= PRDATA;
-	  
+          
           case({sample_AW,decr_AWLEN})
             2'b00: begin AWLEN_Q  <=  AWLEN_Q;          end
             2'b01: begin AWLEN_Q  <=  AWLEN_Q - 1;      end
@@ -448,19 +448,19 @@ module axi2apb
           endcase
           
           case({sample_AW,incr_AWADDR})
-	    2'b00: begin AWADDR_Q  <=  AWADDR_Q;                        end
+            2'b00: begin AWADDR_Q  <=  AWADDR_Q;                        end
             2'b01: begin AWADDR_Q  <=  AWADDR_Q + 4;                    end
             2'b10: begin AWADDR_Q  <=  {AWADDR[31:3],3'b000};           end
             2'b11: begin AWADDR_Q  <=  {AWADDR[31:3],3'b000} + 4;       end
           endcase
-	 
-	  case({sample_AR,incr_ARADDR})
-	    2'b00: begin ARADDR_Q  <=  ARADDR_Q;         end
+         
+          case({sample_AR,incr_ARADDR})
+            2'b00: begin ARADDR_Q  <=  ARADDR_Q;         end
             2'b01: begin ARADDR_Q  <=  ARADDR_Q + 4;     end
             2'b10: begin ARADDR_Q  <=  {ARADDR[31:3],3'b000};           end
             2'b11: begin ARADDR_Q  <=  {ARADDR[31:3],3'b000} + 4;       end
           endcase
-	  
+          
       end
     end
     
@@ -521,8 +521,8 @@ module axi2apb
                     begin
                        NS             = BURST_RD_64;
                        sample_RDATA_0 = 1'b1;
-		       decr_ARLEN     = 1'b1;
-		       incr_ARADDR    = 1'b1;
+                       decr_ARLEN     = 1'b1;
+                       incr_ARADDR    = 1'b1;
                     end
                 end
                 else
@@ -597,12 +597,12 @@ module axi2apb
                 if(AWVALID)
                 begin : _VALID_AW_REQ_
                       
-		      
+                      
                       if(WVALID)
                       begin : _VALID_W_REQ_
                           write_req   = 1'b1;
-			  address     = AWADDR;
-			  
+                          address     = AWADDR;
+                          
                           if(AWADDR[2:0] == 4)
                               W_word_sel = 1'b1;
                           else
@@ -612,8 +612,8 @@ module axi2apb
                           if(PREADY == 1'b1) // APB is READY --> WDATA is LAtched
                           begin : _APB_SLAVE_READY_
                               if(AWLEN == 0)
-				begin : _SINGLE_WRITE_
-				   
+                                begin : _SINGLE_WRITE_
+                                   
                                     case(AWSIZE)
                                     3:         begin NS = SINGLE_WR_64;   end
                                     default:   begin NS = SINGLE_WR;      end
@@ -621,12 +621,12 @@ module axi2apb
                               end
                               else // BURST WRITE
                               begin : _B_WRITE_
-				    
+                                    
                                  sample_AW   = 1'b1;
-				 if((AWADDR[2:0] == 4) && (WSTRB[7:4] == 0))
-				   incr_AWADDR = 1'b0;
-				 else
-				   incr_AWADDR = 1'b1;
+                                 if((AWADDR[2:0] == 4) && (WSTRB[7:4] == 0))
+                                   incr_AWADDR = 1'b0;
+                                 else
+                                   incr_AWADDR = 1'b1;
                                  NS = BURST_WR_64;
                               end
                           end
@@ -670,7 +670,7 @@ module axi2apb
                 NS              = SINGLE_WR_64;
             end
         end //~SINGLE_WR_64
-	
+        
         SINGLE_WR:
         begin
             BVALID   = 1'b1;
@@ -686,44 +686,44 @@ module axi2apb
               NS = SINGLE_WR;
             end
         end //~SINGLE_WR
-	
+        
         BURST_WR_64:
         begin
             W_word_sel      = 1'b1; // write the Second data chunk first
             write_req       = WVALID & (|WSTRB[7:4]);
             address         = AWADDR_Q; // second Chunk, Fixzed Burst
-	    
+            
             if(WVALID)
               begin
-		 if (&WSTRB[7:4])
-		   begin
-		      
+                 if (&WSTRB[7:4])
+                   begin
+                      
                       if(PREADY == 1'b1)
-			begin
-			   NS = BURST_WR;
-			   WREADY = 1'b1; // pop onother data from the WDATA fifo
-			   decr_AWLEN = 1'b1; //decrement the remaining BURST beat
-			   incr_AWADDR = 1'b1; //increment address
-			end
+                        begin
+                           NS = BURST_WR;
+                           WREADY = 1'b1; // pop onother data from the WDATA fifo
+                           decr_AWLEN = 1'b1; //decrement the remaining BURST beat
+                           incr_AWADDR = 1'b1; //increment address
+                        end
                       else
-			begin
-			   NS = BURST_WR_64;
-			end
-		   end
-		 else
-		   begin
-		      NS = BURST_WR;
-		      WREADY = 1'b1; // pop onother data from the WDATA fifo
-		      decr_AWLEN = 1'b1; //decrement the remaining BURST beat
-		      incr_AWADDR = 1'b1; //increment address
-		   end
-	      end
+                        begin
+                           NS = BURST_WR_64;
+                        end
+                   end
+                 else
+                   begin
+                      NS = BURST_WR;
+                      WREADY = 1'b1; // pop onother data from the WDATA fifo
+                      decr_AWLEN = 1'b1; //decrement the remaining BURST beat
+                      incr_AWADDR = 1'b1; //increment address
+                   end
+              end
             else
               begin
                  NS = BURST_WR_64;
               end
         end
-	
+        
         BURST_WR:
         begin
           address  = AWADDR_Q; // second Chunk, Fixzed Burst
@@ -746,12 +746,12 @@ module axi2apb
               if(WVALID)
               begin
                   if(PREADY == 1'b1)
-		    begin
+                    begin
                       NS = BURST_WR_64;
-		      incr_AWADDR = 1'b1;
-		      decr_AWLEN = 1'b1; //decrement the remaining BURST beat
+                      incr_AWADDR = 1'b1;
+                      decr_AWLEN = 1'b1; //decrement the remaining BURST beat
                     end
-		  else
+                  else
                       NS = BURST_WR;
               end
               else
@@ -761,47 +761,47 @@ module axi2apb
           end
 
         end //~BURST_WR
-	
+        
         BURST_RD_64:
         begin
            read_req  = 1'b1;
            address   = ARADDR_Q;
-		
+                
            if(ARLEN_Q == 0) // burst completed
              begin
                 NS      = IDLE;
                 ARREADY = 1'b1;
              end
            else
-	     begin
+             begin
                 if(PREADY == 1'b1) // APB is READY --> RDATA is AVAILABLE
                   begin
-		     decr_ARLEN = 1'b1;
-		     sample_RDATA_1 = 1'b1;
-		     NS = BURST_RD;
-		     
-		     if(ARADDR_Q[2:0] == 4)
-		       incr_ARADDR = 1'b1;
-		     else
-		       incr_ARADDR = 1'b0;
-		     
+                     decr_ARLEN = 1'b1;
+                     sample_RDATA_1 = 1'b1;
+                     NS = BURST_RD;
+                     
+                     if(ARADDR_Q[2:0] == 4)
+                       incr_ARADDR = 1'b1;
+                     else
+                       incr_ARADDR = 1'b0;
+                     
                   end
                 else
                   begin
-		     NS = BURST_RD_64;
+                     NS = BURST_RD_64;
                   end
-	     end
-	   
+             end
+           
         end //~BURST_RD_64
-	
+        
         BURST_RD:
         begin
             RVALID    = 1'b1;
             RDATA[0]  = RDATA_Q_0;
             RDATA[1]  = RDATA_Q_1;
-            RLAST     = (ARLEN_Q == 0) ? 1 : 0;
+            RLAST     = (ARLEN_Q == 0) ? 1'b1 : 1'b0;
             address   = ARADDR_Q;
-	   
+           
             if(RREADY)
             begin // ready to send back the rdata
 
@@ -817,8 +817,8 @@ module axi2apb
                     begin
                         sample_RDATA_0 = 1'b1;
                         NS = BURST_RD_64;
-		        incr_ARADDR = 1'b1;
-		        decr_ARLEN = 1'b1;
+                        incr_ARADDR = 1'b1;
+                        decr_ARLEN = 1'b1;
                     end
                     else
                     begin
@@ -841,15 +841,15 @@ module axi2apb
               begin
                   sample_RDATA_0 = 1'b1;
                   NS = BURST_RD_64;
-		  incr_ARADDR = 1'b1;
-		  decr_ARLEN  = 1'b1;
+                  incr_ARADDR = 1'b1;
+                  decr_ARLEN  = 1'b1;
               end
               else
               begin
                   NS = BURST_RD_1;
               end
         end //~BURST_RD_1
-	
+        
         SINGLE_RD:
         begin
               RVALID    = 1'b1;
@@ -857,7 +857,7 @@ module axi2apb
               RDATA[1]  = RDATA_Q_1;
               RLAST     = 1;
               address   = '0;
-	      
+              
               if(RREADY)
               begin // ready to send back the rdata
                         NS = IDLE;
@@ -868,7 +868,7 @@ module axi2apb
                   NS = SINGLE_RD;
               end
         end //~SINGLE_RD
-	
+        
         SINGLE_RD_64:
         begin
             read_req       = 1'b1;
@@ -876,14 +876,14 @@ module axi2apb
             if(PREADY == 1'b1) // APB is READY --> RDATA is AVAILABLE
             begin
               NS = SINGLE_RD;
-	      if(ARADDR[2:0] == 4)  sample_RDATA_0 = 1'b1; else  sample_RDATA_1 = 1'b1;
+              if(ARADDR[2:0] == 4)  sample_RDATA_0 = 1'b1; else  sample_RDATA_1 = 1'b1;
             end
             else
             begin
               NS = SINGLE_RD_64;
             end
         end //~SINGLE_RD_64
-	
+        
         default:
         begin
             NS      = IDLE;
