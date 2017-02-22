@@ -200,8 +200,6 @@ module axi2apb
   logic        W_word_sel;
   
   logic [31:0] address;
-  logic [31:0] wdata;
-  logic [31:0] rdata;
   
   logic        read_req;
   logic        write_req;
