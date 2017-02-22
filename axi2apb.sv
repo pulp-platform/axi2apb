@@ -513,8 +513,8 @@ module axi2apb
                     if(ARLEN == 0)
                     begin
                       case(ARSIZE)
-                      3      : begin   NS = SINGLE_RD_64;  if(ARADDR[2:0] == 4)  sample_RDATA_1 = 1'b1; else  sample_RDATA_0 = 1'b1; end
-                      default: begin   NS = SINGLE_RD;     if(ARADDR[2:0] == 4)  sample_RDATA_1 = 1'b1; else  sample_RDATA_0 = 1'b1; end //~default
+                      3'h3      : begin   NS = SINGLE_RD_64;  if(ARADDR[2:0] == 3'h4)  sample_RDATA_1 = 1'b1; else  sample_RDATA_0 = 1'b1; end
+                      default:    begin   NS = SINGLE_RD;     if(ARADDR[2:0] == 3'h4)  sample_RDATA_1 = 1'b1; else  sample_RDATA_0 = 1'b1; end //~default
                       endcase
                     end
                     else //ARLEN > 0 --> BURST
@@ -535,7 +535,7 @@ module axi2apb
         begin
             address         =  AWADDR;
             write_req       = 1'b1;
-            if(AWADDR[2:0] == 4)
+            if(AWADDR[2:0] == 3'h4)
                 W_word_sel = 1'b1;
             else
                 W_word_sel = 1'b0;
@@ -546,7 +546,7 @@ module axi2apb
                 if(AWLEN == 0)
                 begin : _SINGLE_WRITE_
                       case(AWSIZE)
-                      3:         begin NS = SINGLE_WR_64;   end
+                      3'h3:         begin NS = SINGLE_WR_64;   end
                       default:   begin NS = SINGLE_WR;      end
                       endcase
 
@@ -577,7 +577,7 @@ module axi2apb
                     if(ARLEN == 0)
                     begin
                       case(ARSIZE)
-                      3      : begin   NS = SINGLE_RD_64;  if(ARADDR[2:0] == 4)  sample_RDATA_1 = 1'b1; else  sample_RDATA_0 = 1'b1; end
+                      3'h3      : begin   NS = SINGLE_RD_64;  if(ARADDR[2:0] == 4)  sample_RDATA_1 = 1'b1; else  sample_RDATA_0 = 1'b1; end
                       default: begin   NS = SINGLE_RD;     if(ARADDR[2:0] == 4)  sample_RDATA_1 = 1'b1; else  sample_RDATA_0 = 1'b1; end //~default
                       endcase
                     end
@@ -603,7 +603,7 @@ module axi2apb
                           write_req   = 1'b1;
                           address     = AWADDR;
                           
-                          if(AWADDR[2:0] == 4)
+                          if(AWADDR[2:0] == 3'h4)
                               W_word_sel = 1'b1;
                           else
                               W_word_sel = 1'b0;
@@ -615,15 +615,15 @@ module axi2apb
                                 begin : _SINGLE_WRITE_
                                    
                                     case(AWSIZE)
-                                    3:         begin NS = SINGLE_WR_64;   end
-                                    default:   begin NS = SINGLE_WR;      end
+                                    3'h3:         begin NS = SINGLE_WR_64;   end
+                                    default:      begin NS = SINGLE_WR;      end
                                     endcase
                               end
                               else // BURST WRITE
                               begin : _B_WRITE_
                                     
                                  sample_AW   = 1'b1;
-                                 if((AWADDR[2:0] == 4) && (WSTRB[7:4] == 0))
+                                 if((AWADDR[2:0] == 3'h4) && (WSTRB[7:4] == 0))
                                    incr_AWADDR = 1'b0;
                                  else
                                    incr_AWADDR = 1'b1;
@@ -780,7 +780,7 @@ module axi2apb
                      sample_RDATA_1 = 1'b1;
                      NS = BURST_RD;
                      
-                     if(ARADDR_Q[2:0] == 4)
+                     if(ARADDR_Q[2:0] == 3'h4)
                        incr_ARADDR = 1'b1;
                      else
                        incr_ARADDR = 1'b0;
@@ -876,7 +876,7 @@ module axi2apb
             if(PREADY == 1'b1) // APB is READY --> RDATA is AVAILABLE
             begin
               NS = SINGLE_RD;
-              if(ARADDR[2:0] == 4)  sample_RDATA_0 = 1'b1; else  sample_RDATA_1 = 1'b1;
+              if(ARADDR[2:0] == 3'h4)  sample_RDATA_0 = 1'b1; else  sample_RDATA_1 = 1'b1;
             end
             else
             begin
