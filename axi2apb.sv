@@ -99,66 +99,65 @@ module axi2apb32
     input  logic                          PSLVERR
 );
 
-
     // --------------------
     // AXI write address bus
     // --------------------
-    logic [AXI4_ID_WIDTH-1:0]                         AWID;
-    logic [AXI4_ADDRESS_WIDTH-1:0]                    AWADDR;
-    logic [ 7:0]                                      AWLEN;
-    logic [ 2:0]                                      AWSIZE;
-    logic [ 1:0]                                      AWBURST;
-    logic                                             AWLOCK;
-    logic [ 3:0]                                      AWCACHE;
-    logic [ 2:0]                                      AWPROT;
-    logic [ 3:0]                                      AWREGION;
-    logic [ AXI4_USER_WIDTH-1:0]                      AWUSER;
-    logic [ 3:0]                                      AWQOS;
-    logic                                             AWVALID;
-    logic                                             AWREADY;
+    logic [AXI4_ID_WIDTH-1:0]       AWID;
+    logic [AXI4_ADDRESS_WIDTH-1:0]  AWADDR;
+    logic [ 7:0]                    AWLEN;
+    logic [ 2:0]                    AWSIZE;
+    logic [ 1:0]                    AWBURST;
+    logic                           AWLOCK;
+    logic [ 3:0]                    AWCACHE;
+    logic [ 2:0]                    AWPROT;
+    logic [ 3:0]                    AWREGION;
+    logic [ AXI4_USER_WIDTH-1:0]    AWUSER;
+    logic [ 3:0]                    AWQOS;
+    logic                           AWVALID;
+    logic                           AWREADY;
     // --------------------
     // AXI write data bus
     // --------------------
-    logic [AXI4_WDATA_WIDTH-1:0]                      WDATA; // from FIFO
-    logic [AXI_NUMBYTES-1:0]                          WSTRB; // from FIFO
-    logic                                             WLAST; // from FIFO
-    logic [AXI4_USER_WIDTH-1:0]                       WUSER; // from FIFO
-    logic                                             WVALID; // from FIFO
-    logic                                             WREADY; // TO FIFO
+    logic [AXI4_WDATA_WIDTH-1:0]    WDATA;  // from FIFO
+    logic [AXI_NUMBYTES-1:0]        WSTRB;  // from FIFO
+    logic                           WLAST;  // from FIFO
+    logic [AXI4_USER_WIDTH-1:0]     WUSER;  // from FIFO
+    logic                           WVALID; // from FIFO
+    logic                           WREADY; // TO FIFO
     // --------------------
     // AXI write response bus
     // --------------------
-    logic   [AXI4_ID_WIDTH-1:0]                       BID;
-    logic   [ 1:0]                                    BRESP;
-    logic                                             BVALID;
-    logic   [AXI4_USER_WIDTH-1:0]                     BUSER;
-    logic                                             BREADY;
+    logic   [AXI4_ID_WIDTH-1:0]     BID;
+    logic   [ 1:0]                  BRESP;
+    logic                           BVALID;
+    logic   [AXI4_USER_WIDTH-1:0]   BUSER;
+    logic                           BREADY;
     // --------------------
     // AXI read address bus
     // --------------------
-    logic [AXI4_ID_WIDTH-1:0]                         ARID;
-    logic [AXI4_ADDRESS_WIDTH-1:0]                    ARADDR;
-    logic [ 7:0]                                      ARLEN;
-    logic [ 2:0]                                      ARSIZE;
-    logic [ 1:0]                                      ARBURST;
-    logic                                             ARLOCK;
-    logic [ 3:0]                                      ARCACHE;
-    logic [ 2:0]                                      ARPROT;
-    logic [ 3:0]                                      ARREGION;
-    logic [ AXI4_USER_WIDTH-1:0]                      ARUSER;
-    logic [ 3:0]                                      ARQOS;
-    logic                                             ARVALID;
-    logic                                             ARREADY;
+    logic [AXI4_ID_WIDTH-1:0]       ARID;
+    logic [AXI4_ADDRESS_WIDTH-1:0]  ARADDR;
+    logic [ 7:0]                    ARLEN;
+    logic [ 2:0]                    ARSIZE;
+    logic [ 1:0]                    ARBURST;
+    logic                           ARLOCK;
+    logic [ 3:0]                    ARCACHE;
+    logic [ 2:0]                    ARPROT;
+    logic [ 3:0]                    ARREGION;
+    logic [ AXI4_USER_WIDTH-1:0]    ARUSER;
+    logic [ 3:0]                    ARQOS;
+    logic                           ARVALID;
+    logic                           ARREADY;
     // --------------------
     // AXI read data bus
     // --------------------
-    logic [AXI4_ID_WIDTH-1:0]                         RID;
-    logic [AXI4_RDATA_WIDTH-1:0]                      RDATA;
-    logic [ 1:0]                                      RRESP;
-    logic                                             RLAST;
-    logic [AXI4_USER_WIDTH-1:0]                       RUSER;
-    logic                                             RVALID;
-    logic                                             RREADY;
+    logic [AXI4_ID_WIDTH-1:0]       RID;
+    logic [AXI4_RDATA_WIDTH-1:0]    RDATA;
+    logic [ 1:0]                    RRESP;
+    logic                           RLAST;
+    logic [AXI4_USER_WIDTH-1:0]     RUSER;
+    logic                           RVALID;
+    logic                           RREADY;
 
   enum logic [2:0] { IDLE,
                      DONE_SINGLE_RD,
@@ -182,15 +181,12 @@ module axi2apb32
   assign PSEL    = 1'b1;
 
    // AXI WRITE ADDRESS CHANNEL BUFFER
-   axi_aw_buffer
-   #(
+   axi_aw_buffer #(
        .ID_WIDTH     ( AXI4_ID_WIDTH      ),
        .ADDR_WIDTH   ( AXI4_ADDRESS_WIDTH ),
        .USER_WIDTH   ( AXI4_USER_WIDTH    ),
        .BUFFER_DEPTH ( BUFF_DEPTH_SLAVE   )
-   )
-   Slave_aw_buffer
-   (
+   ) slave_aw_buffer_i (
       .clk_i           ( ACLK        ),
       .rst_ni          ( ARESETn     ),
       .test_en_i       ( test_en_i   ),
@@ -224,17 +220,13 @@ module axi2apb32
       .master_ready_i  ( AWREADY     )
    );
 
-
    // AXI WRITE ADDRESS CHANNEL BUFFER
-   axi_ar_buffer
-   #(
+   axi_ar_buffer #(
        .ID_WIDTH     ( AXI4_ID_WIDTH      ),
        .ADDR_WIDTH   ( AXI4_ADDRESS_WIDTH ),
        .USER_WIDTH   ( AXI4_USER_WIDTH    ),
        .BUFFER_DEPTH ( BUFF_DEPTH_SLAVE   )
-   )
-   Slave_ar_buffer
-   (
+   ) slave_ar_buffer_i (
       .clk_i           ( ACLK       ),
       .rst_ni          ( ARESETn    ),
       .test_en_i       ( test_en_i  ),
