@@ -15,7 +15,8 @@ module axi2apb_wrap #(
     parameter int unsigned AXI_DATA_WIDTH   = 32,
     parameter int unsigned AXI_USER_WIDTH   = 6,
     parameter int unsigned AXI_ID_WIDTH     = 6,
-    parameter int unsigned APB_ADDR_WIDTH   = 32
+    parameter int unsigned APB_ADDR_WIDTH   = 32,
+    parameter int unsigned APB_DATA_WIDTH   = 32,
 )(
     input logic     clk_i,
     input logic     rst_ni,
@@ -28,8 +29,8 @@ module axi2apb_wrap #(
     // ----------------
     // AXI2APB WRAPER
     // ----------------
-    generate if (AXI_DATA_WIDTH == 32) begin
-        axi2apb32 #(
+    generate if (AXI_DATA_WIDTH == APB_DATA_WIDTH) begin
+        axi2apb #(
             .AXI4_ADDRESS_WIDTH ( AXI_ADDR_WIDTH ),
             .AXI4_RDATA_WIDTH   ( AXI_DATA_WIDTH ),
             .AXI4_WDATA_WIDTH   ( AXI_DATA_WIDTH ),
@@ -101,8 +102,8 @@ module axi2apb_wrap #(
             .PREADY     ( apb_master.pready      ),
             .PSLVERR    ( apb_master.pslverr     )
         );
-        end else if (AXI_DATA_WIDTH == 64) begin
-            axi2apb  #(
+        end else if (AXI_DATA_WIDTH == 64 && APB_DATA_WIDTH == 32) begin
+            axi2apb_64_32  #(
                 .AXI4_ADDRESS_WIDTH ( AXI_ADDR_WIDTH ),
                 .AXI4_RDATA_WIDTH   ( AXI_DATA_WIDTH ),
                 .AXI4_WDATA_WIDTH   ( AXI_DATA_WIDTH ),
