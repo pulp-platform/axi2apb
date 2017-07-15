@@ -37,82 +37,81 @@ module axi2apb #(
     parameter int unsigned APB_NUM_SLAVES     = 8
 )
 (
-    input logic                                     ACLK,
-    input logic                                     ARESETn,
-    input logic                                     test_en_i,
+    input logic                           ACLK,
+    input logic                           ARESETn,
+    input logic                           test_en_i,
     // ---------------------------------------------------------
     // AXI TARG Port Declarations ------------------------------
     // ---------------------------------------------------------
     //AXI write address bus -------------- // USED// -----------
-    input  logic [AXI4_ID_WIDTH-1:0]                AWID_i     ,
-    input  logic [AXI4_ADDRESS_WIDTH-1:0]           AWADDR_i   ,
-    input  logic [ 7:0]                             AWLEN_i    ,
-    input  logic [ 2:0]                             AWSIZE_i   ,
-    input  logic [ 1:0]                             AWBURST_i  ,
-    input  logic                                    AWLOCK_i   ,
-    input  logic [ 3:0]                             AWCACHE_i  ,
-    input  logic [ 2:0]                             AWPROT_i   ,
-    input  logic [ 3:0]                             AWREGION_i ,
-    input  logic [ AXI4_USER_WIDTH-1:0]             AWUSER_i   ,
-    input  logic [ 3:0]                             AWQOS_i    ,
-    input  logic                                    AWVALID_i  ,
-    output logic                                    AWREADY_o  ,
+    input  logic [AXI4_ID_WIDTH-1:0]       AWID_i     ,
+    input  logic [AXI4_ADDRESS_WIDTH-1:0]  AWADDR_i   ,
+    input  logic [ 7:0]                    AWLEN_i    ,
+    input  logic [ 2:0]                    AWSIZE_i   ,
+    input  logic [ 1:0]                    AWBURST_i  ,
+    input  logic                           AWLOCK_i   ,
+    input  logic [ 3:0]                    AWCACHE_i  ,
+    input  logic [ 2:0]                    AWPROT_i   ,
+    input  logic [ 3:0]                    AWREGION_i ,
+    input  logic [ AXI4_USER_WIDTH-1:0]    AWUSER_i   ,
+    input  logic [ 3:0]                    AWQOS_i    ,
+    input  logic                           AWVALID_i  ,
+    output logic                           AWREADY_o  ,
     // ---------------------------------------------------------
 
     //AXI write data bus -------------- // USED// --------------
-    input  logic [AXI_NUMBYTES-1:0][7:0]            WDATA_i    ,
-    input  logic [AXI_NUMBYTES-1:0]                 WSTRB_i    ,
-    input  logic                                    WLAST_i    ,
-    input  logic [AXI4_USER_WIDTH-1:0]              WUSER_i    ,
-    input  logic                                    WVALID_i   ,
-    output logic                                    WREADY_o   ,
+    input  logic [AXI_NUMBYTES-1:0][7:0]   WDATA_i    ,
+    input  logic [AXI_NUMBYTES-1:0]        WSTRB_i    ,
+    input  logic                           WLAST_i    ,
+    input  logic [AXI4_USER_WIDTH-1:0]     WUSER_i    ,
+    input  logic                           WVALID_i   ,
+    output logic                           WREADY_o   ,
     // ---------------------------------------------------------
 
     //AXI write response bus -------------- // USED// ----------
-    output logic   [AXI4_ID_WIDTH-1:0]              BID_o      ,
-    output logic   [ 1:0]                           BRESP_o    ,
-    output logic                                    BVALID_o   ,
-    output logic   [AXI4_USER_WIDTH-1:0]            BUSER_o    ,
-    input  logic                                    BREADY_i   ,
+    output logic   [AXI4_ID_WIDTH-1:0]     BID_o      ,
+    output logic   [ 1:0]                  BRESP_o    ,
+    output logic                           BVALID_o   ,
+    output logic   [AXI4_USER_WIDTH-1:0]   BUSER_o    ,
+    input  logic                           BREADY_i   ,
     // ---------------------------------------------------------
 
     //AXI read address bus -------------------------------------
-    input  logic [AXI4_ID_WIDTH-1:0]                ARID_i     ,
-    input  logic [AXI4_ADDRESS_WIDTH-1:0]           ARADDR_i   ,
-    input  logic [ 7:0]                             ARLEN_i    ,
-    input  logic [ 2:0]                             ARSIZE_i   ,
-    input  logic [ 1:0]                             ARBURST_i  ,
-    input  logic                                    ARLOCK_i   ,
-    input  logic [ 3:0]                             ARCACHE_i  ,
-    input  logic [ 2:0]                             ARPROT_i   ,
-    input  logic [ 3:0]                             ARREGION_i ,
-    input  logic [ AXI4_USER_WIDTH-1:0]             ARUSER_i   ,
-    input  logic [ 3:0]                             ARQOS_i    ,
-    input  logic                                    ARVALID_i  ,
-    output logic                                    ARREADY_o  ,
+    input  logic [AXI4_ID_WIDTH-1:0]       ARID_i     ,
+    input  logic [AXI4_ADDRESS_WIDTH-1:0]  ARADDR_i   ,
+    input  logic [ 7:0]                    ARLEN_i    ,
+    input  logic [ 2:0]                    ARSIZE_i   ,
+    input  logic [ 1:0]                    ARBURST_i  ,
+    input  logic                           ARLOCK_i   ,
+    input  logic [ 3:0]                    ARCACHE_i  ,
+    input  logic [ 2:0]                    ARPROT_i   ,
+    input  logic [ 3:0]                    ARREGION_i ,
+    input  logic [ AXI4_USER_WIDTH-1:0]    ARUSER_i   ,
+    input  logic [ 3:0]                    ARQOS_i    ,
+    input  logic                           ARVALID_i  ,
+    output logic                           ARREADY_o  ,
     // ---------------------------------------------------------
 
     //AXI read data bus ----------------------------------------
-    output  logic [AXI4_ID_WIDTH-1:0]               RID_o      ,
-    output  logic [AXI4_RDATA_WIDTH-1:0]            RDATA_o    ,
-    output  logic [ 1:0]                            RRESP_o    ,
-    output  logic                                   RLAST_o    ,
-    output  logic [AXI4_USER_WIDTH-1:0]             RUSER_o    ,
-    output  logic                                   RVALID_o   ,
-    input   logic                                   RREADY_i   ,
+    output  logic [AXI4_ID_WIDTH-1:0]      RID_o      ,
+    output  logic [AXI4_RDATA_WIDTH-1:0]   RDATA_o    ,
+    output  logic [ 1:0]                   RRESP_o    ,
+    output  logic                          RLAST_o    ,
+    output  logic [AXI4_USER_WIDTH-1:0]    RUSER_o    ,
+    output  logic                          RVALID_o   ,
+    input   logic                          RREADY_i   ,
     // ---------------------------------------------------------
 
-    output logic                                    PENABLE    ,
-    output logic                                    PWRITE     ,
-    output logic [AXI4_ADDRESS_WIDTH-1:0]           PADDR      ,
-    output logic                                    PSEL       ,
-    output logic [31:0]                             PWDATA     ,
-    input  logic [31:0]                             PRDATA     ,
-    input  logic                                    PREADY     ,
-    input  logic                                    PSLVERR
+    output logic                           PENABLE    ,
+    output logic                           PWRITE     ,
+    output logic [AXI4_ADDRESS_WIDTH-1:0]  PADDR      ,
+    output logic                           PSEL       ,
+    output logic [31:0]                    PWDATA     ,
+    input  logic [31:0]                    PRDATA     ,
+    input  logic                           PREADY     ,
+    input  logic                           PSLVERR
 );
 
-    localparam OFFSET_BIT = 2;
     // --------------------
     // AXI write address bus
     // --------------------
@@ -434,13 +433,13 @@ module axi2apb #(
                     W_word_sel = 1'b0;
 
                 // There is a Pending WRITE!!
-                if(PREADY == 1'b1) begin // APB is READY --> WDATA is LAtched
+                if (PREADY == 1'b1) begin // APB is READY --> WDATA is LAtched
                     if (AWLEN == 0) begin // single write
                         case (AWSIZE)
                             3'h3: NS = SINGLE_WR_64;
                             default: NS = SINGLE_WR;
                         endcase
-                    end else begin// BURST WRITE
+                    end else begin // BURST WRITE
                         sample_AW = 1'b1;
                         NS        = BURST_WR_64;
                     end
@@ -471,10 +470,10 @@ module axi2apb #(
                                         sample_RDATA_1 = 1'b1;
                                     else
                                         sample_RDATA_0 = 1'b1;
-                                    end //~default
-                          endcase end else begin//ARLEN > 0 --> BURST
-                           NS             = BURST_RD_64;
-                           sample_RDATA_0 = 1'b1;
+                                    end
+                            endcase end else begin //ARLEN > 0 --> BURST
+                            NS             = BURST_RD_64;
+                            sample_RDATA_0 = 1'b1;
                         end
                     end else begin // APB not ready
                         NS = WAIT_R_PREADY;
@@ -557,16 +556,16 @@ module axi2apb #(
                         if(PREADY == 1'b1) begin
                             NS          = BURST_WR;
                             WREADY      = 1'b1; // pop onother data from the WDATA fifo
-                            decr_AWLEN  = 1'b1; //decrement the remaining BURST beat
-                            incr_AWADDR = 1'b1; //increment address
+                            decr_AWLEN  = 1'b1; // decrement the remaining BURST beat
+                            incr_AWADDR = 1'b1; // increment address
                         end else begin
                             NS = BURST_WR_64;
                         end
                     end else begin
                         NS = BURST_WR;
                         WREADY      = 1'b1; // pop onother data from the WDATA fifo
-                        decr_AWLEN  = 1'b1; //decrement the remaining BURST beat
-                        incr_AWADDR = 1'b1; //increment address
+                        decr_AWLEN  = 1'b1; // decrement the remaining BURST beat
+                        incr_AWADDR = 1'b1; // increment address
                     end
                 end else begin
                     NS = BURST_WR_64;
@@ -731,22 +730,22 @@ module axi2apb #(
             case ({sample_AW, decr_AWLEN})
                 2'b00: AWLEN_Q <= AWLEN_Q;
                 2'b01: AWLEN_Q <= AWLEN_Q - 1;
-                2'b10: AWLEN_Q <= {AWLEN,1'b0} + 1;
-                2'b11: AWLEN_Q <= {AWLEN,1'b0};
+                2'b10: AWLEN_Q <= {AWLEN, 1'b0} + 1;
+                2'b11: AWLEN_Q <= {AWLEN, 1'b0};
             endcase
 
             case ({sample_AW, incr_AWADDR})
                 2'b00: AWADDR_Q <= AWADDR_Q;
                 2'b01: AWADDR_Q <= AWADDR_Q + 4;
-                2'b10: AWADDR_Q <= {AWADDR[AXI4_ADDRESS_WIDTH-1:3],3'b000};
-                2'b11: AWADDR_Q <= {AWADDR[AXI4_ADDRESS_WIDTH-1:3],3'b000} + 4;
+                2'b10: AWADDR_Q <= {AWADDR[AXI4_ADDRESS_WIDTH-1:3], 3'b000};
+                2'b11: AWADDR_Q <= {AWADDR[AXI4_ADDRESS_WIDTH-1:3], 3'b000} + 4;
             endcase
 
             case({sample_AR, incr_ARADDR})
                 2'b00: ARADDR_Q <= ARADDR_Q;
                 2'b01: ARADDR_Q <= ARADDR_Q + 4;
-                2'b10: ARADDR_Q <= {ARADDR[AXI4_ADDRESS_WIDTH-1:3],3'b000};
-                2'b11: ARADDR_Q <= {ARADDR[AXI4_ADDRESS_WIDTH-1:3],3'b000} + 4;
+                2'b10: ARADDR_Q <= {ARADDR[AXI4_ADDRESS_WIDTH-1:3], 3'b000};
+                2'b11: ARADDR_Q <= {ARADDR[AXI4_ADDRESS_WIDTH-1:3], 3'b000} + 4;
             endcase
         end
     end
