@@ -23,7 +23,7 @@
 `define SLVERR 2'b10
 `define DECERR 2'b11
 
-module axi2apb32
+module axi2apb
 #(
     parameter AXI4_ADDRESS_WIDTH = 32,
     parameter AXI4_RDATA_WIDTH   = 32,
