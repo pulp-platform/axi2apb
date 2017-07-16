@@ -8,15 +8,13 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
-`include "axi_bus.sv"
-
 module axi2apb_wrap #(
     parameter int unsigned AXI_ADDR_WIDTH   = 32,
     parameter int unsigned AXI_DATA_WIDTH   = 32,
     parameter int unsigned AXI_USER_WIDTH   = 6,
     parameter int unsigned AXI_ID_WIDTH     = 6,
     parameter int unsigned APB_ADDR_WIDTH   = 32,
-    parameter int unsigned APB_DATA_WIDTH   = 32,
+    parameter int unsigned APB_DATA_WIDTH   = 32
 )(
     input logic     clk_i,
     input logic     rst_ni,

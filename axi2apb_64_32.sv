@@ -25,7 +25,7 @@
 `define SLVERR 2'b10
 `define DECERR 2'b11
 
-module axi2apb #(
+module axi2apb_64_32 #(
     parameter int unsigned AXI4_ADDRESS_WIDTH = 32,
     parameter int unsigned AXI4_RDATA_WIDTH   = 64,
     parameter int unsigned AXI4_WDATA_WIDTH   = 64,
@@ -34,7 +34,8 @@ module axi2apb #(
     parameter int unsigned AXI_NUMBYTES       = AXI4_WDATA_WIDTH/8,
 
     parameter int unsigned BUFF_DEPTH_SLAVE   = 4,
-    parameter int unsigned APB_NUM_SLAVES     = 8
+    parameter int unsigned APB_NUM_SLAVES     = 8,
+    parameter int unsigned APB_ADDR_WIDTH     = 12
 )
 (
     input logic                           ACLK,
@@ -396,23 +397,23 @@ module axi2apb #(
 
                 if (PREADY == 1'b1) begin// APB is READY --> RDATA is AVAILABLE
                     if (ARLEN == 0) begin
-                      case (ARSIZE)
-                        3'h3: begin
-                            NS = SINGLE_RD_64;
-                            if (ARADDR[2:0] == 3'h4)
-                                sample_RDATA_1 = 1'b1;
-                            else  sample_RDATA_0 = 1'b1;
-                        end
-
-                        default: begin
-                            NS = SINGLE_RD;
-                            if (ARADDR[2:0] == 3'h4)
-                                sample_RDATA_1 = 1'b1;
-                            else
-                                sample_RDATA_0 = 1'b1;
+                        case (ARSIZE)
+                            3'h3: begin
+                                NS = SINGLE_RD_64;
+                                if (ARADDR[2:0] == 3'h4)
+                                    sample_RDATA_1 = 1'b1;
+                                else  sample_RDATA_0 = 1'b1;
                             end
-                      endcase
-                    end else // ARLEN > 0 --> BURST
+
+                            default: begin
+                                NS = SINGLE_RD;
+                                if (ARADDR[2:0] == 3'h4)
+                                    sample_RDATA_1 = 1'b1;
+                                else
+                                    sample_RDATA_0 = 1'b1;
+                                end
+                            endcase
+                    end else begin // ARLEN > 0 --> BURST
                        NS             = BURST_RD_64;
                        sample_RDATA_0 = 1'b1;
                        decr_ARLEN     = 1'b1;
