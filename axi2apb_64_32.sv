@@ -105,7 +105,7 @@ module axi2apb_64_32 #(
 
     output logic                           PENABLE    ,
     output logic                           PWRITE     ,
-    output logic [AXI4_ADDRESS_WIDTH-1:0]  PADDR      ,
+    output logic [APB_ADDR_WIDTH-1:0]      PADDR      ,
     output logic                           PSEL       ,
     output logic [31:0]                    PWDATA     ,
     input  logic [31:0]                    PRDATA     ,
@@ -209,7 +209,7 @@ module axi2apb_64_32 #(
 
     assign PENABLE = write_req | read_req;
     assign PWRITE  = write_req;
-    assign PADDR   = address;
+    assign PADDR   = address[APB_ADDR_WIDTH-1:0];
 
     assign PWDATA  = WDATA[W_word_sel];
     assign PSEL    = 1'b1;
