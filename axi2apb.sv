@@ -7,21 +7,16 @@
 // this License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
-
-// ============================================================================= //
-// Engineer:       Igor Loi - igor.loi@unibo.it                                  //
-//                 Davide Rossi - davide.rossi@unibo.it                          //
-//                                                                               //
-// Design Name:    AXI 4 to APB Bridge                                           //
-// Module Name:    axi2apb                                                       //
-// Project Name:   PULP                                                          //
-// Language:       SystemVerilog                                                 //
-//                                                                               //
-// Description:    This Bridge performs a protocol transaltion between AXI4 to   //
-//                 APB. It is tailored for FIXED BURST types, so it is not       //
-//                 generic bridge.                                               //
-//                                                                               //
-// ============================================================================= //
+//
+// Engineer:       Igor Loi - igor.loi@unibo.it
+//                 Davide Rossi - davide.rossi@unibo.it
+//
+// Design Name:    AXI 4 (2**n bit) to APB (2**nbit) Bridge
+// Module Name:    axi2apb32
+// Project Name:   PULPino, Kerbin
+// Language:       SystemVerilog
+// Description:    This Bridge performs a protocol translation between AXI4 to
+//                 APB. BURSTs (of any kind) across the APB are not supported
 
 `define OKAY   2'b00
 `define EXOKAY 2'b01
@@ -31,219 +26,167 @@
 module axi2apb
 #(
     parameter AXI4_ADDRESS_WIDTH = 32,
-    parameter AXI4_RDATA_WIDTH   = 64,
-    parameter AXI4_WDATA_WIDTH   = 64,
+    parameter AXI4_RDATA_WIDTH   = 32,
+    parameter AXI4_WDATA_WIDTH   = 32,
     parameter AXI4_ID_WIDTH      = 16,
     parameter AXI4_USER_WIDTH    = 10,
     parameter AXI_NUMBYTES       = AXI4_WDATA_WIDTH/8,
 
     parameter BUFF_DEPTH_SLAVE   = 4,
-    parameter APB_NUM_SLAVES     = 8,
-    parameter APB_ADDR_WIDTH     = 12  //APB slaves are 4KB by default
+    parameter APB_ADDR_WIDTH     = 32
 )
 (
-    input logic                                     ACLK,
-    input logic                                     ARESETn,
-    input logic                                     test_en_i,
-    // ---------------------------------------------------------
-    // AXI TARG Port Declarations ------------------------------
-    // ---------------------------------------------------------
-    //AXI write address bus -------------- // USED// -----------
-    input  logic [AXI4_ID_WIDTH-1:0]                AWID_i     ,
-    input  logic [AXI4_ADDRESS_WIDTH-1:0]           AWADDR_i   ,
-    input  logic [ 7:0]                             AWLEN_i    ,
-    input  logic [ 2:0]                             AWSIZE_i   ,
-    input  logic [ 1:0]                             AWBURST_i  ,
-    input  logic                                    AWLOCK_i   ,
-    input  logic [ 3:0]                             AWCACHE_i  ,
-    input  logic [ 2:0]                             AWPROT_i   ,
-    input  logic [ 3:0]                             AWREGION_i ,
-    input  logic [ AXI4_USER_WIDTH-1:0]             AWUSER_i   ,
-    input  logic [ 3:0]                             AWQOS_i    ,
-    input  logic                                    AWVALID_i  ,
-    output logic                                    AWREADY_o  ,
-    // ---------------------------------------------------------
- 
-    //AXI write data bus -------------- // USED// --------------
-    input  logic [AXI_NUMBYTES-1:0][7:0]            WDATA_i    ,
-    input  logic [AXI_NUMBYTES-1:0]                 WSTRB_i    ,
-    input  logic                                    WLAST_i    ,
-    input  logic [AXI4_USER_WIDTH-1:0]              WUSER_i    ,
-    input  logic                                    WVALID_i   ,
-    output logic                                    WREADY_o   ,
-    // ---------------------------------------------------------
+    input logic                           ACLK,
+    input logic                           ARESETn,
+    input logic                           test_en_i,
 
-    //AXI write response bus -------------- // USED// ----------
-    output logic   [AXI4_ID_WIDTH-1:0]              BID_o      ,
-    output logic   [ 1:0]                           BRESP_o    ,
-    output logic                                    BVALID_o   ,
-    output logic   [AXI4_USER_WIDTH-1:0]            BUSER_o    ,
-    input  logic                                    BREADY_i   ,
-    // ---------------------------------------------------------
+    input  logic [AXI4_ID_WIDTH-1:0]      AWID_i,
+    input  logic [AXI4_ADDRESS_WIDTH-1:0] AWADDR_i,
+    input  logic [ 7:0]                   AWLEN_i,
+    input  logic [ 2:0]                   AWSIZE_i,
+    input  logic [ 1:0]                   AWBURST_i,
+    input  logic                          AWLOCK_i,
+    input  logic [ 3:0]                   AWCACHE_i,
+    input  logic [ 2:0]                   AWPROT_i,
+    input  logic [ 3:0]                   AWREGION_i,
+    input  logic [ AXI4_USER_WIDTH-1:0]   AWUSER_i,
+    input  logic [ 3:0]                   AWQOS_i,
+    input  logic                          AWVALID_i,
+    output logic                          AWREADY_o,
 
-    //AXI read address bus -------------------------------------
-    input  logic [AXI4_ID_WIDTH-1:0]                ARID_i     ,
-    input  logic [AXI4_ADDRESS_WIDTH-1:0]           ARADDR_i   ,
-    input  logic [ 7:0]                             ARLEN_i    ,
-    input  logic [ 2:0]                             ARSIZE_i   ,
-    input  logic [ 1:0]                             ARBURST_i  ,
-    input  logic                                    ARLOCK_i   ,
-    input  logic [ 3:0]                             ARCACHE_i  ,
-    input  logic [ 2:0]                             ARPROT_i   ,
-    input  logic [ 3:0]                             ARREGION_i ,
-    input  logic [ AXI4_USER_WIDTH-1:0]             ARUSER_i   ,
-    input  logic [ 3:0]                             ARQOS_i    ,
-    input  logic                                    ARVALID_i  ,
-    output logic                                    ARREADY_o  ,
-    // ---------------------------------------------------------
+    input  logic [AXI4_WDATA_WIDTH-1:0]   WDATA_i,
+    input  logic [AXI_NUMBYTES-1:0]       WSTRB_i,
+    input  logic                          WLAST_i,
+    input  logic [AXI4_USER_WIDTH-1:0]    WUSER_i,
+    input  logic                          WVALID_i,
+    output logic                          WREADY_o,
 
-    //AXI read data bus ----------------------------------------
-    output  logic [AXI4_ID_WIDTH-1:0]               RID_o      ,
-    output  logic [AXI4_RDATA_WIDTH-1:0]            RDATA_o    ,
-    output  logic [ 1:0]                            RRESP_o    ,
-    output  logic                                   RLAST_o    ,
-    output  logic [AXI4_USER_WIDTH-1:0]             RUSER_o    ,
-    output  logic                                   RVALID_o   ,
-    input   logic                                   RREADY_i   ,
-    // ---------------------------------------------------------
+    output logic   [AXI4_ID_WIDTH-1:0]    BID_o,
+    output logic   [ 1:0]                 BRESP_o,
+    output logic                          BVALID_o,
+    output logic   [AXI4_USER_WIDTH-1:0]  BUSER_o,
+    input  logic                          BREADY_i,
 
-    output logic                                    PENABLE    ,
-    output logic                                    PWRITE     ,
-    output logic [31:0]                             PADDR      ,
-    output logic                                    PSEL       ,
-    output logic [31:0]                             PWDATA     ,
-    input  logic [31:0]                             PRDATA     ,
-    input  logic                                    PREADY     ,
-    input  logic                                    PSLVERR
+    input  logic [AXI4_ID_WIDTH-1:0]      ARID_i,
+    input  logic [AXI4_ADDRESS_WIDTH-1:0] ARADDR_i,
+    input  logic [ 7:0]                   ARLEN_i,
+    input  logic [ 2:0]                   ARSIZE_i,
+    input  logic [ 1:0]                   ARBURST_i,
+    input  logic                          ARLOCK_i,
+    input  logic [ 3:0]                   ARCACHE_i,
+    input  logic [ 2:0]                   ARPROT_i,
+    input  logic [ 3:0]                   ARREGION_i,
+    input  logic [ AXI4_USER_WIDTH-1:0]   ARUSER_i,
+    input  logic [ 3:0]                   ARQOS_i,
+    input  logic                          ARVALID_i,
+    output logic                          ARREADY_o,
+
+    output  logic [AXI4_ID_WIDTH-1:0]     RID_o,
+    output  logic [AXI4_RDATA_WIDTH-1:0]  RDATA_o,
+    output  logic [ 1:0]                  RRESP_o,
+    output  logic                         RLAST_o,
+    output  logic [AXI4_USER_WIDTH-1:0]   RUSER_o,
+    output  logic                         RVALID_o,
+    input   logic                         RREADY_i,
+
+    output logic                          PENABLE,
+    output logic                          PWRITE,
+    output logic [APB_ADDR_WIDTH-1:0]     PADDR,
+    output logic                          PSEL,
+    output logic [AXI4_WDATA_WIDTH-1:0]   PWDATA,
+    input  logic [AXI4_RDATA_WIDTH-1:0]   PRDATA,
+    input  logic                          PREADY,
+    input  logic                          PSLVERR
 );
 
+    // --------------------
+    // AXI write address bus
+    // --------------------
+    logic [AXI4_ID_WIDTH-1:0]       AWID;
+    logic [AXI4_ADDRESS_WIDTH-1:0]  AWADDR;
+    logic [ 7:0]                    AWLEN;
+    logic [ 2:0]                    AWSIZE;
+    logic [ 1:0]                    AWBURST;
+    logic                           AWLOCK;
+    logic [ 3:0]                    AWCACHE;
+    logic [ 2:0]                    AWPROT;
+    logic [ 3:0]                    AWREGION;
+    logic [ AXI4_USER_WIDTH-1:0]    AWUSER;
+    logic [ 3:0]                    AWQOS;
+    logic                           AWVALID;
+    logic                           AWREADY;
+    // --------------------
+    // AXI write data bus
+    // --------------------
+    logic [AXI4_WDATA_WIDTH-1:0]    WDATA;  // from FIFO
+    logic [AXI_NUMBYTES-1:0]        WSTRB;  // from FIFO
+    logic                           WLAST;  // from FIFO
+    logic [AXI4_USER_WIDTH-1:0]     WUSER;  // from FIFO
+    logic                           WVALID; // from FIFO
+    logic                           WREADY; // TO FIFO
+    // --------------------
+    // AXI write response bus
+    // --------------------
+    logic   [AXI4_ID_WIDTH-1:0]     BID;
+    logic   [ 1:0]                  BRESP;
+    logic                           BVALID;
+    logic   [AXI4_USER_WIDTH-1:0]   BUSER;
+    logic                           BREADY;
+    // --------------------
+    // AXI read address bus
+    // --------------------
+    logic [AXI4_ID_WIDTH-1:0]       ARID;
+    logic [AXI4_ADDRESS_WIDTH-1:0]  ARADDR;
+    logic [ 7:0]                    ARLEN;
+    logic [ 2:0]                    ARSIZE;
+    logic [ 1:0]                    ARBURST;
+    logic                           ARLOCK;
+    logic [ 3:0]                    ARCACHE;
+    logic [ 2:0]                    ARPROT;
+    logic [ 3:0]                    ARREGION;
+    logic [ AXI4_USER_WIDTH-1:0]    ARUSER;
+    logic [ 3:0]                    ARQOS;
+    logic                           ARVALID;
+    logic                           ARREADY;
+    // --------------------
+    // AXI read data bus
+    // --------------------
+    logic [AXI4_ID_WIDTH-1:0]       RID;
+    logic [AXI4_RDATA_WIDTH-1:0]    RDATA;
+    logic [ 1:0]                    RRESP;
+    logic                           RLAST;
+    logic [AXI4_USER_WIDTH-1:0]     RUSER;
+    logic                           RVALID;
+    logic                           RREADY;
 
-  localparam OFFSET_BIT = 2;
+  enum logic [2:0] { IDLE,
+                     DONE_SINGLE_RD,
+                     WAIT_W_PREADY,
+                     WAIT_R_PREADY,
+                     SEND_B_RESP
+                    } CS, NS;
 
+  logic [AXI4_ADDRESS_WIDTH-1:0] address;
+  logic sample_RDATA;
 
-  // -----------------------------------------------------------
-  // AXI TARG Port Declarations --------------------------------
-  // -----------------------------------------------------------
-  //AXI write address bus --------------------------------------
-  logic [AXI4_ID_WIDTH-1:0]                         AWID       ;
-  logic [AXI4_ADDRESS_WIDTH-1:0]                    AWADDR     ;
-  logic [ 7:0]                                      AWLEN      ;
-  logic [ 2:0]                                      AWSIZE     ;
-  logic [ 1:0]                                      AWBURST    ;
-  logic                                             AWLOCK     ;
-  logic [ 3:0]                                      AWCACHE    ;
-  logic [ 2:0]                                      AWPROT     ;
-  logic [ 3:0]                                      AWREGION   ;
-  logic [ AXI4_USER_WIDTH-1:0]                      AWUSER     ;
-  logic [ 3:0]                                      AWQOS      ;
-  logic                                             AWVALID    ;
-  logic                                             AWREADY    ;
-  // -----------------------------------------------------------
+  logic [AXI4_RDATA_WIDTH-1:0] RDATA_Q;
 
-  //AXI write data bus ------------------------ ----------------
-  logic [1:0][31:0]                                 WDATA      ; // from FIFO
-  logic [AXI_NUMBYTES-1:0]                          WSTRB      ; // from FIFO
-  logic                                             WLAST      ; // from FIFO
-  logic [AXI4_USER_WIDTH-1:0]                       WUSER      ; // from FIFO
-  logic                                             WVALID     ; // from FIFO
-  logic                                             WREADY     ; // TO FIFO
-  // -----------------------------------------------------------
+  logic read_req;
+  logic write_req;
 
-  //AXI write response bus -------------------------------------
-  logic   [AXI4_ID_WIDTH-1:0]                       BID        ;
-  logic   [ 1:0]                                    BRESP      ;
-  logic                                             BVALID     ;
-  logic   [AXI4_USER_WIDTH-1:0]                     BUSER      ;
-  logic                                             BREADY     ;
-  // -----------------------------------------------------------
+  assign PENABLE = write_req | read_req;
+  assign PWRITE  = write_req;
+  assign PADDR   = address[APB_ADDR_WIDTH-1:0];
+  assign PWDATA  = WDATA;
+  assign PSEL    = 1'b1;
 
-  //AXI read address bus ---------------------------------------
-  logic [AXI4_ID_WIDTH-1:0]                         ARID       ;
-  logic [AXI4_ADDRESS_WIDTH-1:0]                    ARADDR     ;
-  logic [ 7:0]                                      ARLEN      ;
-  logic [ 2:0]                                      ARSIZE     ;
-  logic [ 1:0]                                      ARBURST    ;
-  logic                                             ARLOCK     ;
-  logic [ 3:0]                                      ARCACHE    ;
-  logic [ 2:0]                                      ARPROT     ;
-  logic [ 3:0]                                      ARREGION   ;
-  logic [ AXI4_USER_WIDTH-1:0]                      ARUSER     ;
-  logic [ 3:0]                                      ARQOS      ;
-  logic                                             ARVALID    ;
-  logic                                             ARREADY    ;
-  // -----------------------------------------------------------
-
-  //AXI read data bus ------------------------------------------
-  logic [AXI4_ID_WIDTH-1:0]                         RID        ;
-  logic [1:0][31:0]                                 RDATA      ;
-  logic [ 1:0]                                      RRESP      ;
-  logic                                             RLAST      ;
-  logic [AXI4_USER_WIDTH-1:0]                       RUSER      ;
-  logic                                             RVALID     ;
-  logic                                             RREADY     ;
-  // -----------------------------------------------------------
-  
-  enum logic [3:0] {    IDLE,
-                        SINGLE_RD,
-                        SINGLE_RD_64,
-                        BURST_RD_1,
-                        BURST_RD,
-                        BURST_RD_64,
-                        BURST_WR,
-                        BURST_WR_64,
-                        SINGLE_WR,
-                        SINGLE_WR_64,
-                        WAIT_R_PREADY,
-                        WAIT_W_PREADY
-                    } CS,NS;
-  
-  logic        W_word_sel;
-  
-  logic [31:0] address;
-  
-  logic        read_req;
-  logic        write_req;
-  
-  logic        sample_AR;
-  logic [8:0]  ARLEN_Q;
-  logic        decr_ARLEN;
-  
-  logic        sample_AW;
-  logic [8:0]  AWLEN_Q;
-  logic        decr_AWLEN;
-  
-  logic [AXI4_ADDRESS_WIDTH-1:0] ARADDR_Q;
-  logic                          incr_ARADDR;
-   
-  logic [AXI4_ADDRESS_WIDTH-1:0] AWADDR_Q;
-  logic                          incr_AWADDR;
-  
-  logic        sample_RDATA_0; // Sample the First  32 bit CHunk to be aggregated in 64bit rdata
-  logic        sample_RDATA_1; // Sample the Second 32 bit CHunk to be aggregated in 64bit rdata
-  logic [31:0] RDATA_Q_0;
-  logic [31:0] RDATA_Q_1;
-  
-  assign PENABLE    = write_req | read_req;
-  assign PWRITE     = write_req;
-  assign PADDR      = address;
-  
-  assign PWDATA     = WDATA[W_word_sel];
-  
-  always_comb
-  begin
-    PSEL = 1'b1;
-  end
-  
    // AXI WRITE ADDRESS CHANNEL BUFFER
-   axi_aw_buffer
-   #(
+   axi_aw_buffer #(
        .ID_WIDTH     ( AXI4_ID_WIDTH      ),
        .ADDR_WIDTH   ( AXI4_ADDRESS_WIDTH ),
        .USER_WIDTH   ( AXI4_USER_WIDTH    ),
        .BUFFER_DEPTH ( BUFF_DEPTH_SLAVE   )
-   )
-   Slave_aw_buffer
-   (
+   ) slave_aw_buffer_i (
       .clk_i           ( ACLK        ),
       .rst_ni          ( ARESETn     ),
       .test_en_i       ( test_en_i   ),
@@ -276,17 +219,14 @@ module axi2apb
       .master_user_o   ( AWUSER      ),
       .master_ready_i  ( AWREADY     )
    );
-   
+
    // AXI WRITE ADDRESS CHANNEL BUFFER
-   axi_ar_buffer
-   #(
+   axi_ar_buffer #(
        .ID_WIDTH     ( AXI4_ID_WIDTH      ),
        .ADDR_WIDTH   ( AXI4_ADDRESS_WIDTH ),
        .USER_WIDTH   ( AXI4_USER_WIDTH    ),
        .BUFFER_DEPTH ( BUFF_DEPTH_SLAVE   )
-   )
-   Slave_ar_buffer
-   (
+   ) slave_ar_buffer_i (
       .clk_i           ( ACLK       ),
       .rst_ni          ( ARESETn    ),
       .test_en_i       ( test_en_i  ),
@@ -319,15 +259,13 @@ module axi2apb
       .master_user_o   ( ARUSER     ),
       .master_ready_i  ( ARREADY    )
    );
-   
-   axi_w_buffer
-   #(
+
+
+   axi_w_buffer #(
        .DATA_WIDTH(AXI4_WDATA_WIDTH),
        .USER_WIDTH(AXI4_USER_WIDTH),
        .BUFFER_DEPTH(BUFF_DEPTH_SLAVE)
-   )
-   Slave_w_buffer
-   (
+   ) slave_w_buffer_i (
         .clk_i          ( ACLK      ),
         .rst_ni         ( ARESETn   ),
         .test_en_i      ( test_en_i ),
@@ -347,15 +285,12 @@ module axi2apb
         .master_ready_i ( WREADY    )
     );
 
-   axi_r_buffer
-   #(
-        .ID_WIDTH(AXI4_ID_WIDTH),
-        .DATA_WIDTH(AXI4_RDATA_WIDTH),
-        .USER_WIDTH(AXI4_USER_WIDTH),
-        .BUFFER_DEPTH(BUFF_DEPTH_SLAVE)
-   )
-   Slave_r_buffer
-   (
+   axi_r_buffer #(
+        .ID_WIDTH     ( AXI4_ID_WIDTH    ),
+        .DATA_WIDTH   ( AXI4_RDATA_WIDTH ),
+        .USER_WIDTH   ( AXI4_USER_WIDTH  ),
+        .BUFFER_DEPTH ( BUFF_DEPTH_SLAVE )
+   ) slave_r_buffer_i (
         .clk_i          ( ACLK       ),
         .rst_ni         ( ARESETn    ),
         .test_en_i      ( test_en_i  ),
@@ -376,15 +311,12 @@ module axi2apb
         .master_last_o  ( RLAST_o    ),
         .master_ready_i ( RREADY_i   )
    );
-   
-   axi_b_buffer
-   #(
+
+   axi_b_buffer #(
         .ID_WIDTH(AXI4_ID_WIDTH),
         .USER_WIDTH(AXI4_USER_WIDTH),
         .BUFFER_DEPTH(BUFF_DEPTH_SLAVE)
-   )
-   Slave_b_buffer
-   (
+   ) slave_b_buffer (
         .clk_i          ( ACLK      ),
         .rst_ni         ( ARESETn   ),
         .test_en_i      ( test_en_i ),
@@ -401,493 +333,123 @@ module axi2apb
         .master_user_o  ( BUSER_o   ),
         .master_ready_i ( BREADY_i  )
     );
-    
-    always_ff @(posedge ACLK, negedge ARESETn)
-    begin
-      if(ARESETn == 1'b0)
-      begin
-          CS           <= IDLE;
 
-          //Read Channel
-          ARLEN_Q      <= '0;
-          AWADDR_Q     <= '0;
-         
-          //Write Channel
-          AWLEN_Q      <= '0;
-          RDATA_Q_0    <= '0;
-          RDATA_Q_1    <= '0;
-          ARADDR_Q     <= '0;
-         
-      end
-      else
-      begin
-          CS <= NS;
+    always_comb begin
 
-          if(sample_AR)
-          begin
-              ARLEN_Q  <=  {ARLEN,1'b0} + 2;
-          end
-          else
-          begin
-              if(decr_ARLEN)
-                ARLEN_Q  <=  ARLEN_Q - 1;
-          end
-         
-          if(sample_RDATA_0)
-            RDATA_Q_0 <= PRDATA;
-          if(sample_RDATA_1)
-            RDATA_Q_1 <= PRDATA;
-          
-          case({sample_AW,decr_AWLEN})
-            2'b00: begin AWLEN_Q  <=  AWLEN_Q;          end
-            2'b01: begin AWLEN_Q  <=  AWLEN_Q - 1;      end
-            2'b10: begin AWLEN_Q  <=  {AWLEN,1'b0} + 1; end
-            2'b11: begin AWLEN_Q  <=  {AWLEN,1'b0};     end
-          endcase
-          
-          case({sample_AW,incr_AWADDR})
-            2'b00: begin AWADDR_Q  <=  AWADDR_Q;                        end
-            2'b01: begin AWADDR_Q  <=  AWADDR_Q + 4;                    end
-            2'b10: begin AWADDR_Q  <=  {AWADDR[31:3],3'b000};           end
-            2'b11: begin AWADDR_Q  <=  {AWADDR[31:3],3'b000} + 4;       end
-          endcase
-         
-          case({sample_AR,incr_ARADDR})
-            2'b00: begin ARADDR_Q  <=  ARADDR_Q;         end
-            2'b01: begin ARADDR_Q  <=  ARADDR_Q + 4;     end
-            2'b10: begin ARADDR_Q  <=  {ARADDR[31:3],3'b000};           end
-            2'b11: begin ARADDR_Q  <=  {ARADDR[31:3],3'b000} + 4;       end
-          endcase
-          
-      end
-    end
-    
-    always_comb
-    begin
-      read_req   = 1'b0;
-      write_req  = 1'b0;
-      W_word_sel = 1'b0; // Write Word Selector
+      read_req     = 1'b0;
+      write_req    = 1'b0;
+      address      = '0;
 
-      sample_AW  = 1'b0;
-      decr_AWLEN = 1'b0;
-      sample_AR  = 1'b0;
-      decr_ARLEN = 1'b0;
+      sample_RDATA = 1'b0;
 
-      incr_AWADDR = 1'b0;
-      incr_ARADDR = 1'b0;
-       
-      sample_RDATA_0 = 1'b0;
-      sample_RDATA_1 = 1'b0;
-      
-      ARREADY    = 1'b0;
-      AWREADY    = 1'b0;
-      WREADY     = 1'b0;
-      RDATA     = '0;
+      ARREADY      = 1'b0;
+      AWREADY      = 1'b0;
+      WREADY       = 1'b0;
 
-      //-----------------//
-      BVALID     = 1'b0;
-      BRESP      = `OKAY;
-      BID        = AWID;
-      BUSER      = AWUSER;
-      //-----------------//
-      RVALID     = 1'b0;
-      RLAST      = 1'b0;
-      RID        = ARID;
-      RUSER      = ARUSER;
-      RRESP      = `OKAY;
+      BVALID       = 1'b0;
+      BRESP        = `OKAY;
+      BID          = AWID;
+      BUSER        = AWUSER;
 
+      RVALID       = 1'b0;
+      RLAST        = 1'b0;
+      RID          = ARID;
+      RUSER        = ARUSER;
+      RRESP        = `OKAY;
+      RDATA        = RDATA_Q;
 
       case(CS)
 
+        WAIT_R_PREADY: begin
+            read_req     = 1'b1;
+            address      = ARADDR[APB_ADDR_WIDTH  - 1 : 0];
+            sample_RDATA = PREADY;
 
-        WAIT_R_PREADY: 
-        begin
-                sample_AR      = 1'b0;
-                read_req       = 1'b1;
-                address        = ARADDR;
-                
-                if(PREADY == 1'b1) // APB is READY --> RDATA is AVAILABLE
-                begin
-                    if(ARLEN == 0)
-                    begin
-                      case(ARSIZE)
-                      3'h3      : begin   NS = SINGLE_RD_64;  if(ARADDR[2:0] == 3'h4)  sample_RDATA_1 = 1'b1; else  sample_RDATA_0 = 1'b1; end
-                      default:    begin   NS = SINGLE_RD;     if(ARADDR[2:0] == 3'h4)  sample_RDATA_1 = 1'b1; else  sample_RDATA_0 = 1'b1; end //~default
-                      endcase
-                    end
-                    else //ARLEN > 0 --> BURST
-                    begin
-                       NS             = BURST_RD_64;
-                       sample_RDATA_0 = 1'b1;
-                       decr_ARLEN     = 1'b1;
-                       incr_ARADDR    = 1'b1;
-                    end
-                end
-                else
-                begin // APB not ready
-                    NS = WAIT_R_PREADY;
-                end
-        end //~WAIT_R_PREADY
+            if (PREADY == 1'b1) begin // APB is READY --> RDATA is AVAILABLE
+               NS = DONE_SINGLE_RD;
+            end
+        end
 
-        WAIT_W_PREADY: 
-        begin
-            address         =  AWADDR;
-            write_req       = 1'b1;
-            if(AWADDR[2:0] == 3'h4)
-                W_word_sel = 1'b1;
-            else
-                W_word_sel = 1'b0;
-
+        WAIT_W_PREADY: begin
+            write_req   = 1'b1;
+            address     = AWADDR[APB_ADDR_WIDTH - 1:0];
             // There is a Pending WRITE!!
-            if(PREADY == 1'b1) // APB is READY --> WDATA is LAtched
-            begin
-                if(AWLEN == 0)
-                begin : _SINGLE_WRITE_
-                      case(AWSIZE)
-                      3'h3:         begin NS = SINGLE_WR_64;   end
-                      default:   begin NS = SINGLE_WR;      end
-                      endcase
-
-                end
-                else // BURST WRITE
-                begin
-                      sample_AW  = 1'b1;
-                      NS         = BURST_WR_64;
-                end
+            if (PREADY == 1'b1) begin // APB is READY --> WDATA is LAtched
+                NS = SEND_B_RESP;
             end
-            else // APB not READY
-            begin
-                NS = WAIT_W_PREADY;
-            end  
-        end //~WAIT_W_PREADY
+        end
 
+        IDLE: begin
+            if (ARVALID == 1'b1) begin
+                read_req     = 1'b1;
+                address      = ARADDR[APB_ADDR_WIDTH - 1:0];;
+                sample_RDATA = PREADY;
 
-        IDLE:
-        begin
-            if(ARVALID == 1'b1)
-            begin
-                sample_AR      = 1'b1;
-                read_req       = 1'b1;
-                address        = ARADDR;
-
-                if(PREADY == 1'b1) // APB is READY --> RDATA is AVAILABLE
-                begin : _RDATA_AVAILABLE
-                    if(ARLEN == 0)
-                    begin
-                      case(ARSIZE)
-                      3'h3      : begin   NS = SINGLE_RD_64;  if(ARADDR[2:0] == 4)  sample_RDATA_1 = 1'b1; else  sample_RDATA_0 = 1'b1; end
-                      default: begin   NS = SINGLE_RD;     if(ARADDR[2:0] == 4)  sample_RDATA_1 = 1'b1; else  sample_RDATA_0 = 1'b1; end //~default
-                      endcase
-                    end
-                    else //ARLEN > 0 --> BURST
-                    begin
-                       NS             = BURST_RD_64;
-                       sample_RDATA_0 = 1'b1;
-                    end
-                end
-                else
-                begin // APB not ready
+                if(PREADY == 1'b1) begin // APB is READY --> RDATA is AVAILABLE
+                    NS   = DONE_SINGLE_RD;
+                end else begin // APB not ready
                     NS = WAIT_R_PREADY;
                 end
-            end
-            else
-            begin
-                if(AWVALID)
-                begin : _VALID_AW_REQ_
-                      
-                      
-                      if(WVALID)
-                      begin : _VALID_W_REQ_
-                          write_req   = 1'b1;
-                          address     = AWADDR;
-                          
-                          if(AWADDR[2:0] == 3'h4)
-                              W_word_sel = 1'b1;
-                          else
-                              W_word_sel = 1'b0;
-                          
-                          // There is a Pending WRITE!!
-                          if(PREADY == 1'b1) // APB is READY --> WDATA is LAtched
-                          begin : _APB_SLAVE_READY_
-                              if(AWLEN == 0)
-                                begin : _SINGLE_WRITE_
-                                   
-                                    case(AWSIZE)
-                                    3'h3:         begin NS = SINGLE_WR_64;   end
-                                    default:      begin NS = SINGLE_WR;      end
-                                    endcase
-                              end
-                              else // BURST WRITE
-                              begin : _B_WRITE_
-                                    
-                                 sample_AW   = 1'b1;
-                                 if((AWADDR[2:0] == 3'h4) && (WSTRB[7:4] == 0))
-                                   incr_AWADDR = 1'b0;
-                                 else
-                                   incr_AWADDR = 1'b1;
-                                 NS = BURST_WR_64;
-                              end
-                          end
-                          else // APB not READY
-                          begin : _APB_SLAVE_NOT_READY_
-                              NS = WAIT_W_PREADY;
-                          end
+            end else begin
+                if (AWVALID) begin
+                    address =  AWADDR[APB_ADDR_WIDTH - 1:0];
+                    if (WVALID) begin
+                        write_req = 1'b1;
 
-                      end
-                      else // GOT ADDRESS WRITE, not DATA
-                      begin
-                          write_req       = 1'b0;
-                          address         = '0;
-                          NS              = IDLE;
-                      end
-                      ////////////////////////////////////////////////////////////
-
-                end
-                else // No requests
-                begin
-                  NS = IDLE;
-                  address         =  '0;
+                        // There is a Pending WRITE!!
+                        if (PREADY == 1'b1) begin// APB is READY --> WDATA is LAtched
+                            NS = SEND_B_RESP;
+                        end else begin // APB not READY
+                           NS = WAIT_W_PREADY;
+                        end
+                    end else begin // GOT ADDRESS WRITE, not DATA
+                        write_req       = 1'b0;
+                        address         = '0;
+                        NS              = IDLE;
+                    end
                 end
             end
-        end //~IDLE
-        
-        SINGLE_WR_64:
-        begin
-            address         = AWADDR + 4;
-            W_word_sel      = 1'b1; // write the Second data chunk
-            write_req       = WVALID;
-            if(WVALID)
-            begin
-                if(PREADY == 1'b1)
-                    NS = SINGLE_WR;
-                else
-                    NS = SINGLE_WR_64;
-            end
-            else
-            begin
-                NS              = SINGLE_WR_64;
-            end
-        end //~SINGLE_WR_64
-        
-        SINGLE_WR:
-        begin
+        end
+
+        SEND_B_RESP: begin
+
             BVALID   = 1'b1;
             address  = '0;
-            if(BREADY)
-            begin
-              NS = IDLE;
-              AWREADY = 1'b1;
-              WREADY  = 1'b1;
-            end
-            else
-            begin
-              NS = SINGLE_WR;
-            end
-        end //~SINGLE_WR
-        
-        BURST_WR_64:
-        begin
-            W_word_sel      = 1'b1; // write the Second data chunk first
-            write_req       = WVALID & (|WSTRB[7:4]);
-            address         = AWADDR_Q; // second Chunk, Fixzed Burst
-            
-            if(WVALID)
-              begin
-                 if (&WSTRB[7:4])
-                   begin
-                      
-                      if(PREADY == 1'b1)
-                        begin
-                           NS = BURST_WR;
-                           WREADY = 1'b1; // pop onother data from the WDATA fifo
-                           decr_AWLEN = 1'b1; //decrement the remaining BURST beat
-                           incr_AWADDR = 1'b1; //increment address
-                        end
-                      else
-                        begin
-                           NS = BURST_WR_64;
-                        end
-                   end
-                 else
-                   begin
-                      NS = BURST_WR;
-                      WREADY = 1'b1; // pop onother data from the WDATA fifo
-                      decr_AWLEN = 1'b1; //decrement the remaining BURST beat
-                      incr_AWADDR = 1'b1; //increment address
-                   end
-              end
-            else
-              begin
-                 NS = BURST_WR_64;
-              end
-        end
-        
-        BURST_WR:
-        begin
-          address  = AWADDR_Q; // second Chunk, Fixzed Burst
-          if(AWLEN_Q == 0) // last
-          begin : _BURST_COMPLETED_
-              BVALID = 1'b1;
-              if(BREADY)
-              begin
-                NS = IDLE;
-                AWREADY = 1'b1;
-              end
-              else
-                NS = BURST_WR;
-          end
-          else
-          begin : _BUSRST_NOT_COMPLETED_
-              W_word_sel      = 1'b0; // write the Second data chunk first
-             write_req       = WVALID & (&WSTRB[3:0]);
 
-              if(WVALID)
-              begin
-                  if(PREADY == 1'b1)
-                    begin
-                      NS = BURST_WR_64;
-                      incr_AWADDR = 1'b1;
-                      decr_AWLEN = 1'b1; //decrement the remaining BURST beat
-                    end
-                  else
-                      NS = BURST_WR;
-              end
-              else
-              begin
-                  NS = BURST_WR_64;
-              end
-          end
-
-        end //~BURST_WR
-        
-        BURST_RD_64:
-        begin
-           read_req  = 1'b1;
-           address   = ARADDR_Q;
-                
-           if(ARLEN_Q == 0) // burst completed
-             begin
+            if (BREADY) begin
                 NS      = IDLE;
-                ARREADY = 1'b1;
-             end
-           else
-             begin
-                if(PREADY == 1'b1) // APB is READY --> RDATA is AVAILABLE
-                  begin
-                     decr_ARLEN = 1'b1;
-                     sample_RDATA_1 = 1'b1;
-                     NS = BURST_RD;
-                     
-                     if(ARADDR_Q[2:0] == 3'h4)
-                       incr_ARADDR = 1'b1;
-                     else
-                       incr_ARADDR = 1'b0;
-                     
-                  end
-                else
-                  begin
-                     NS = BURST_RD_64;
-                  end
-             end
-           
-        end //~BURST_RD_64
-        
-        BURST_RD:
-        begin
-            RVALID    = 1'b1;
-            RDATA[0]  = RDATA_Q_0;
-            RDATA[1]  = RDATA_Q_1;
-            RLAST     = (ARLEN_Q == 0) ? 1'b1 : 1'b0;
-            address   = ARADDR_Q;
-           
-            if(RREADY)
-            begin // ready to send back the rdata
-
-                if(ARLEN_Q == 0) // burst completed
-                begin : _READ_BURST_COMPLETED_
-                      NS = IDLE;
-                      ARREADY = 1'b1;
-                end
-                else
-                begin : _READ_BUSRST_NOT_COMPLETED_
-                    read_req        = 1'b1;
-                    if(PREADY == 1'b1) // APB is READY --> RDATA is AVAILABLE
-                    begin
-                        sample_RDATA_0 = 1'b1;
-                        NS = BURST_RD_64;
-                        incr_ARADDR = 1'b1;
-                        decr_ARLEN = 1'b1;
-                    end
-                    else
-                    begin
-                        NS = BURST_RD_1;
-                    end
-                end
+                AWREADY = 1'b1;
+                WREADY  = 1'b1;
             end
-            else // NOT ready to send back the rdata
-            begin
-                NS = BURST_RD;
-            end
-        end //~BURST_RD
-
-
-        BURST_RD_1:
-        begin
-              read_req        = 1'b1;
-              address         = ARADDR_Q;
-              if(PREADY == 1'b1) // APB is READY --> RDATA is AVAILABLE
-              begin
-                  sample_RDATA_0 = 1'b1;
-                  NS = BURST_RD_64;
-                  incr_ARADDR = 1'b1;
-                  decr_ARLEN  = 1'b1;
-              end
-              else
-              begin
-                  NS = BURST_RD_1;
-              end
-        end //~BURST_RD_1
-        
-        SINGLE_RD:
-        begin
-              RVALID    = 1'b1;
-              RDATA[0]  = RDATA_Q_0;
-              RDATA[1]  = RDATA_Q_1;
-              RLAST     = 1;
-              address   = '0;
-              
-              if(RREADY)
-              begin // ready to send back the rdata
-                        NS = IDLE;
-                        ARREADY = 1'b1;
-              end
-              else // NOT ready to send back the rdata
-              begin
-                  NS = SINGLE_RD;
-              end
-        end //~SINGLE_RD
-        
-        SINGLE_RD_64:
-        begin
-            read_req       = 1'b1;
-            address        = ARADDR + 4;
-            if(PREADY == 1'b1) // APB is READY --> RDATA is AVAILABLE
-            begin
-              NS = SINGLE_RD;
-              if(ARADDR[2:0] == 3'h4)  sample_RDATA_0 = 1'b1; else  sample_RDATA_1 = 1'b1;
-            end
-            else
-            begin
-              NS = SINGLE_RD_64;
-            end
-        end //~SINGLE_RD_64
-        
-        default:
-        begin
-            NS      = IDLE;
-            address = 0;
         end
+
+        DONE_SINGLE_RD: begin
+
+            RVALID    = 1'b1;
+            RLAST     = 1;
+            address   = '0;
+
+            if (RREADY) begin // ready to send back the rdata
+                NS = IDLE;
+                ARREADY = 1'b1;
+            end
+        end
+
+        default: NS = IDLE;
+
       endcase
     end
 
-endmodule //~AXI_2_APB
+    always_ff @(posedge ACLK, negedge ARESETn) begin
+        if (ARESETn == 1'b0) begin
+            CS      <= IDLE;
+            RDATA_Q <= '0;
+        end else begin
+            CS      <= NS;
+
+            if (sample_RDATA)
+                RDATA_Q <= PRDATA;
+        end
+    end
+
+endmodule
