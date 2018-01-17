@@ -1,4 +1,4 @@
-// Copyright 2016 ETH Zurich and University of Bologna.
+// Copyright 2014-2018 ETH Zurich and University of Bologna.
 // Copyright and related rights are licensed under the Solderpad Hardware
 // License, Version 0.51 (the “License”); you may not use this file except in
 // compliance with the License.  You may obtain a copy of the License at
@@ -8,15 +8,9 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 //
-// Engineer:       Igor Loi - igor.loi@unibo.it
-//                 Davide Rossi - davide.rossi@unibo.it
-//
-// Design Name:    AXI 4 (2**n bit) to APB (2**nbit) Bridge
-// Module Name:    axi2apb32
-// Project Name:   PULPino, Kerbin
-// Language:       SystemVerilog
-// Description:    This Bridge performs a protocol translation between AXI4 to
-//                 APB. BURSTs (of any kind) across the APB are not supported
+// Igor Loi <igor.loi@unibo.it>
+// Davide Rossi <davide.rossi@unibo.it>
+// Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 
 `define OKAY   2'b00
 `define EXOKAY 2'b01
