@@ -4,7 +4,7 @@ package:
 
 dependencies:
     axi: { git: "git@iis-git.ee.ethz.ch:fschuiki/axi.git", rev: master }
-
+    apb: { git: "git@iis-git.ee.ethz.ch:sasa/apb.git", rev: master }
 sources:
   - axi2apb.sv
   - axi2apb_64_32.sv
