@@ -1,10 +1,13 @@
 package:
   name: axi2apb
-  authors: [ "Florian Zaruba <zarubaf@iis.ee.ethz.ch>" ]
+  authors: [
+    "Davide Rossi <drossi@unibo.it>"
+    "Florian Zaruba <zarubaf@iis.ee.ethz.ch>"
+  ]
 
 dependencies:
-    axi: { git: "git@iis-git.ee.ethz.ch:sasa/axi.git", rev: master }
-    apb: { git: "git@iis-git.ee.ethz.ch:sasa/apb.git", rev: master }
+    axi: { git: "https://github.com/pulp-platform/axi.git", rev: 0.4.3 }
+    apb: { git: "https://github.com/pulp-platform/apb.git", rev: 0.1.0 }
 sources:
   - src/axi2apb.sv
   - src/axi2apb_64_32.sv
