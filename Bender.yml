@@ -1,7 +1,7 @@
 package:
   name: axi2apb
   authors: [
-    "Davide Rossi <drossi@unibo.it>"
+    "Davide Rossi <drossi@unibo.it>",
     "Florian Zaruba <zarubaf@iis.ee.ethz.ch>"
   ]
 
