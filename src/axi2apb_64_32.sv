@@ -46,6 +46,7 @@ module axi2apb_64_32 #(
     input  logic [ 3:0]                    AWCACHE_i  ,
     input  logic [ 2:0]                    AWPROT_i   ,
     input  logic [ 3:0]                    AWREGION_i ,
+    input  logic [ 5:0]                    AWATOP_i   ,
     input  logic [ AXI4_USER_WIDTH-1:0]    AWUSER_i   ,
     input  logic [ 3:0]                    AWQOS_i    ,
     input  logic                           AWVALID_i  ,
@@ -220,6 +221,7 @@ module axi2apb_64_32 #(
        .slave_addr_i    ( AWADDR_i    ),
        .slave_prot_i    ( AWPROT_i    ),
        .slave_region_i  ( AWREGION_i  ),
+       .slave_atop_i    ( '0          ),
        .slave_len_i     ( AWLEN_i     ),
        .slave_size_i    ( AWSIZE_i    ),
        .slave_burst_i   ( AWBURST_i   ),
@@ -233,6 +235,7 @@ module axi2apb_64_32 #(
        .master_addr_o   ( AWADDR      ),
        .master_prot_o   ( AWPROT      ),
        .master_region_o ( AWREGION    ),
+       .master_atop_o   (             ),
        .master_len_o    ( AWLEN       ),
        .master_size_o   ( AWSIZE      ),
        .master_burst_o  ( AWBURST     ),
@@ -742,4 +745,10 @@ module axi2apb_64_32 #(
             endcase
         end
     end
+
+    //pragma translate_off
+    assert property (@(posedge ACLK) (ARESETn && AWVALID_i |-> AWATOP_i == '0))
+        else $error("This module does not support atomic operations!");
+    //pragma translate_on
+
 endmodule

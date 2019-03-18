@@ -6,7 +6,7 @@ package:
   ]
 
 dependencies:
-    axi: { git: "https://github.com/pulp-platform/axi.git", version: 0.4.5 }
+    axi: { git: "https://github.com/pulp-platform/axi.git", version: 0.6.0 }
     apb: { git: "https://github.com/pulp-platform/apb.git", version: 0.1.0 }
 sources:
   - src/axi2apb.sv
