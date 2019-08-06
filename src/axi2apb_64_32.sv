@@ -475,7 +475,7 @@ module axi2apb_64_32 #(
 
                     if (AWVALID) begin //: _VALID_AW_REQ_
                         if (WVALID) begin // : _VALID_W_REQ_
-                            write_req = 1'b1;
+                            write_req = (|WSTRB[3:0]);
                             address   = AWADDR;
 
                             if (AWADDR[2:0] == 3'h4)
@@ -516,7 +516,7 @@ module axi2apb_64_32 #(
             SINGLE_WR_64: begin
                 address    = AWADDR + 4;
                 W_word_sel = 1'b1; // write the Second data chunk
-                write_req  = WVALID;
+                write_req  = WVALID & (|WSTRB[7:4]);
                 if (WVALID) begin
                     if (PREADY == 1'b1)
                         NS = SINGLE_WR;
